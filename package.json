@@ -1,23 +1,4 @@
 {
-  "name": "ts6-accessibility-project-nvda-add-on-",
-  "version": "1.0.0",
-  "description": "An accessibility project for Teamspeak 6",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/DriftDeV/Ts6-Accessibility-Project-NVDA-Add-on-.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/DriftDeV/Ts6-Accessibility-Project-NVDA-Add-on-/issues"
-  },
-  "homepage": "https://github.com/DriftDeV/Ts6-Accessibility-Project-NVDA-Add-on-#readme",
   "dependencies": {
     "chrome-remote-interface": "^0.33.3"
   }
