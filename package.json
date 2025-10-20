@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "chrome-remote-interface": "^0.33.3"
+    "chrome-remote-interface": "^0.33.3",
+    "package.json": "^0.0.0"
   }
 }
