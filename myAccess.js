@@ -27,6 +27,7 @@
           safeSetAttr(el, 'aria-label', label);
         }
         root.querySelectorAll('.ts-title-logo').forEach((el) => {
+          safeSetAttr (el, 'tabindex', '0')
           safeSetAttr(el, 'role', 'heading');
           safeSetAttr(el, 'aria-label', 'Teamspeak');
       });
@@ -117,16 +118,13 @@
           safeSetAttr(el, 'aria-label', label);
         }
       });
-
-      // Search input
-
-
+      
       // Aggiungi focus visibile se manca
       const styleId = 'teamspeak-a11y-focus-style';
       if (!document.getElementById(styleId)) {
         const style = document.createElement('style');
         style.id = styleId;
-        style.textContent = `:focus { outline: 3px solid #1a73e8 !important; outline-offset: 2px; }`;
+        style.textContent = `:focus { outline: 3px solid #f6ff00ff !important; outline-offset: 2px; }`;
         // document.head può essere null in alcuni contesti; fallback
         (document.head || document.documentElement).appendChild(style);
       }
