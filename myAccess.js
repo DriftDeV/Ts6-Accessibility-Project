@@ -15,7 +15,6 @@
 
   function applyA11y(root = document) {
     try {
-
       root.querySelectorAll('.tsv-bar-item.tsv-action').forEach((el) => {
         if (!el) return;
         const hasRole = el.getAttribute && el.getAttribute('role');
@@ -35,15 +34,29 @@
           safeSetAttr(input, 'role', 'searchbox');
           safeSetAttr(input, 'aria-label', 'Search or Connect');
       });
-        root.querySelectorAll('.tsv-bar-item.tsv-action-subtle').forEach((input) => {
-          const label = input.querySelector('svg').getAttribute('name') || input.getAttribute('title') || 'Action';
-          safeSetAttr(input, 'tabindex', '0');
-          safeSetAttr(input, 'role', 'button');
-          safeSetAttr(input, 'aria-label', label);
-      });
         root.querySelectorAll('.tsv-text-truncate').forEach((input) => {
           safeSetAttr(input, 'role', 'text');
       });
+        root.querySelectorAll('.tsv-bar-item.tsv-action-subtle').forEach((input) => {
+          safeSetAttr(input, 'tabindex', '0');
+          const svg = input.querySelector('svg');
+          if (svg && svg.getAttribute('name') === 'settings') {
+            safeSetAttr(input, 'role', 'button');
+            safeSetAttr(input, 'aria-label', 'Settings');
+          }
+          if (svg && svg.getAttribute('name') === 'window-minimize') {
+            safeSetAttr(input, 'role', 'button');
+            safeSetAttr(input, 'aria-label', 'minimize');
+          }
+          if (svg && svg.getAttribute('name') === 'window-maximize') {
+            safeSetAttr(input, 'role', 'button');
+            safeSetAttr(input, 'aria-label', 'maximize');
+          }
+          if (svg && svg.getAttribute('name') === 'window-close') {
+            safeSetAttr(input, 'role', 'button');
+            safeSetAttr(input, 'aria-label', 'close');
+          }
+        });
       });
 
       root.querySelectorAll('.ts-sidebar-tab-sub-panel-accessory').forEach((el) => {
@@ -117,7 +130,6 @@
         // document.head può essere null in alcuni contesti; fallback
         (document.head || document.documentElement).appendChild(style);
       }
-
       // Aggiungi più regole personalizzate qui per menu, liste, canali, pulsanti, ecc.
     } catch (e) {
       console.error('[a11y] applyA11y error', e);

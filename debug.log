@@ -5,3 +5,13 @@
 [1019/124907.265:INFO:..\116d0f\1\chromium\src\cef\libcef\common\crash_reporting.cc:209] Crash reporting enabled for process: renderer
 [1019/124907.265:INFO:..\116d0f\1\chromium\src\cef\libcef\common\crash_reporting.cc:209] Crash reporting enabled for process: renderer
 [1019/124910.335:INFO:..\116d0f\1\chromium\src\cef\libcef\common\crash_reporting.cc:209] Crash reporting enabled for process: utility
+[1020/094223.525:INFO:..\116d0f\1\chromium\src\cef\libcef\common\crash_reporting.cc:209] Crash reporting enabled for process: browser
+[1020/094223.834:INFO:..\116d0f\1\chromium\src\cef\libcef\common\crash_reporting.cc:209] Crash reporting enabled for process: gpu-process
+[1020/094223.853:INFO:..\116d0f\1\chromium\src\cef\libcef\common\crash_reporting.cc:209] Crash reporting enabled for process: utility
+[1020/094224.102:INFO:..\116d0f\1\chromium\src\cef\libcef\common\crash_reporting.cc:209] Crash reporting enabled for process: utility
+[1020/094225.944:INFO:..\116d0f\1\chromium\src\cef\libcef\common\crash_reporting.cc:209] Crash reporting enabled for process: renderer
+[1020/094225.952:INFO:..\116d0f\1\chromium\src\cef\libcef\common\crash_reporting.cc:209] Crash reporting enabled for process: renderer
+[1020/094304.309:INFO:..\116d0f\1\chromium\src\cef\libcef\common\crash_reporting.cc:209] Crash reporting enabled for process: utility
+[1020/094330.905:INFO:..\116d0f\1\chromium\src\cef\libcef\common\crash_reporting.cc:209] Crash reporting enabled for process: utility
+[1020/094356.938:INFO:..\116d0f\1\chromium\src\cef\libcef\common\crash_reporting.cc:209] Crash reporting enabled for process: browser
+[1020/094426.406:INFO:..\116d0f\1\chromium\src\cef\libcef\common\crash_reporting.cc:209] Crash reporting enabled for process: browser
