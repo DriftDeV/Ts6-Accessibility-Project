@@ -32,7 +32,7 @@
           safeSetAttr(el, 'aria-label', 'Teamspeak');
       });
         root.querySelectorAll('.tsv-search-input, input.tsv-search-input').forEach((input) => {
-          safeSetAttr(input, 'role', 'searchbox');
+          safeSetAttr(input, 'role', 'search');
           safeSetAttr(input, 'aria-label', 'Search or Connect');
       });
         root.querySelectorAll('.tsv-text-truncate').forEach((input) => {
