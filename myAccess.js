@@ -29,21 +29,25 @@
         }
         // Creo Banner
         root.querySelectorAll('.tsv-header.tsv-highlight.tsv-sidebar-header').forEach(element => {
+          if (!element) return ;
           safeSetAttr(element, "role", "banner")
           safeSetAttr(element, "tabindex", "0")
         });
         //Etichetto Pulsanti come "create teamspeak community" come Pulsante
         root.querySelectorAll(".tsv-button-content.tsv-flex.tsv-flex-snd-center.ts-font-small").forEach(element =>{
+          if (!element) return ;
           safeSetAttr(element, "tabindex", "0")
           safeSetAttr(element, "role", "button")
         });
         //Aggiungo Intestazione
         root.querySelectorAll('.ts-title-logo').forEach((el) => {
+          if (!el) return ;
           safeSetAttr (el, 'tabindex', '0');
           safeSetAttr(el, 'role', 'heading');
           safeSetAttr(el, 'aria-label', 'Teamspeak');
       });
         root.querySelectorAll('.tsv-search-input, input.tsv-search-input').forEach((input) => {
+          if (!input) return ;
           safeSetAttr(input, 'role', 'search');
           safeSetAttr(input, 'aria-label', 'Search or Connect');
       });
@@ -51,6 +55,7 @@
           safeSetAttr(input, 'role', 'text');
       });
         root.querySelectorAll('.tsv-bar-item.tsv-action-subtle').forEach((input) => {
+          if (!input) return ;
           safeSetAttr(input, 'tabindex', '0');
           const svg = input.querySelector('svg');
           if (svg && svg.getAttribute('name') === 'settings') {
@@ -84,10 +89,12 @@
           safeSetAttr(el, 'aria-label', label);
         }
         root.querySelectorAll('.ts-server-tree-active-status__item').forEach((el) => {
+          if (!el) return;
           safeSetAttr(el, 'role', 'button');
           safeSetAttr(el, 'aria-label', 'Talk-power Grant/Revoke');
       });
         root.querySelectorAll('.ts-server-tree-inactive-status').forEach((el) => {
+          if (!el) return;
           safeSetAttr(el, 'role', 'img');
           safeSetAttr(el, 'aria-label', 'Server Group roles/Badges');
       });
@@ -154,23 +161,46 @@
       }
       //divido in sezioni le tabs principani
       root.querySelectorAll(".resources-section-container.tsv-flex-grow").forEach(element => {
+        if (!element) return;
         safeSetAttr(element, "role", "group");
         safeSetAttr(element, "tabindex", "0");
+        safeSetAttr(element, "aria-label", "Server/Chats");
       });
-      //divido in gruppi per navigazione più semplificata
-      root.querySelectorAll(".ts-widget-wrapper").forEach(element => {
-        var level;
-        level++;
-        var level_tostring = ''+level
-        safeSetAttr(element, "role", "group");
-        safeSetAttr(element, "tabindex", "0")
-        safeSetAttr(element, "aria-label", element.querySelector(".ts-widget-section-header").querySelector(".title").textContent);
-        safeSetAttr(element, "aria-level", level_tostring);
-      });
-      //Aggiongo i separatori
-      root.querySelectorAll(".tsv-resize-handle.tsv-resize-handle-section.tsv-resize-handle-bottom").forEach(element => {
-        safeSetAttr(element, "role", "separator");
-      });
+      // Migioramento navigazione
+        root.querySelectorAll(".tsv-virtual-list").forEach(element => {
+          if (!element) return;
+          element.removeAttribute("tabindex")
+        });
+        root.querySelectorAll(".tsv-bar-item.tsv-sidebar-header-accessories.tsv-action-subtle.tsv-no-padding-right").forEach(element => {
+          if (!element) return;
+          element.removeAttribute("tabindex");
+        });
+        //divido in gruppi per navigazione più semplificata
+        root.querySelectorAll(".ts-widget-wrapper").forEach(element => {
+          if (!element) return;
+          var level;
+          level++;
+          var level_tostring = ''+level
+          safeSetAttr(element, "role", "group");
+          safeSetAttr(element, "tabindex", "0")
+          safeSetAttr(element, "aria-label", element.querySelector(".ts-widget-section-header").querySelector(".title").textContent);
+          safeSetAttr(element, "aria-level", level_tostring);
+        });
+
+        root.querySelectorAll(".tsv-item-content.tsv-item-content-primary").forEach(element => {
+          if (!element) return;
+          safeSetAttr(element, "role", "button");
+          safeSetAttr(element, "tabindex", "0");
+          if (element.querySelector(".tsv-item-text.tsv-flex-grow").querySelector(".tsv-text-truncate") !== null) {
+            safeSetAttr(element, "aria-label", element.querySelector(".tsv-item-text.tsv-flex-grow").querySelector(".tsv-text-truncate").textContent);
+          };
+        });
+        //Aggiongo e nascondo i separatori
+        root.querySelectorAll(".tsv-resize-handle.tsv-resize-handle-section.tsv-resize-handle-bottom").forEach(element => {
+          if (!element) return;
+          safeSetAttr(element, "role", "separator");
+          safeSetAttr(element, "aria-hidden", "true");
+        });
 
     } catch (e) {
       console.error('[a11y] applyA11y error', e);
