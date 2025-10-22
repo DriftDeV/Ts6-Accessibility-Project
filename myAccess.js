@@ -154,7 +154,7 @@
       }
       //divido in sezioni le tabs principani
       root.querySelectorAll(".resources-section-container.tsv-flex-grow").forEach(element => {
-        safeSetAttr(element, "role", "section");
+        safeSetAttr(element, "role", "group");
         safeSetAttr(element, "tabindex", "0");
       });
       //divido in gruppi per navigazione più semplificata
