@@ -187,6 +187,15 @@
           safeSetAttr(element, "aria-level", level_tostring);
         });
 
+        //Creo gurppo per canali
+        root.querySelectorAll(".vue-recycle-scroller.scroller.ts-server-tree-scroller.tsv-scrollbar-safe-area.ready.direction-vertical").forEach(element => {
+          if (!element) return;
+          safeSetAttr(element, "role", "group");
+          safeSetAttr(element, "tabindex", "0")
+          safeSetAttr(element, "aria-label", "server-channels Group");
+          safeSetAttr(element, "aria-level", "1");
+        });
+        //Rendo pulsanti i Bookmarks salvati
         root.querySelectorAll(".tsv-item-content.tsv-item-content-primary").forEach(element => {
           if (!element) return;
           safeSetAttr(element, "role", "button");
@@ -194,6 +203,18 @@
           if (element.querySelector(".tsv-item-text.tsv-flex-grow").querySelector(".tsv-text-truncate") !== null) {
             safeSetAttr(element, "aria-label", element.querySelector(".tsv-item-text.tsv-flex-grow").querySelector(".tsv-text-truncate").textContent);
           };
+        });
+        // Rendo Pulsanti i canali dei server
+        root.querySelectorAll(".ts-server-tree-item-node-content.channel.ts-server-tree-item-node-with-childs").forEach(element => {
+          if (!element) return;
+          safeSetAttr(element, "role", "button");
+          safeSetAttr(element, "tabindex", "0");
+          safeSetAttr(element, "aria-label", element.querySelector(".ts-server-tree-channel-info.tsv-tree-preserve-spaces.ts-server-tree-item-text.centered.banner").textContent);
+        });
+        root.querySelectorAll(".ts-server-tree-item-node-content.channel.ts-server-tree-item-key-without-chevron").forEach(element => {
+          if (!element) return;
+          safeSetAttr(element, "role", "button");
+          safeSetAttr(element, "tabindex", "0");
         });
         //Aggiongo e nascondo i separatori
         root.querySelectorAll(".tsv-resize-handle.tsv-resize-handle-section.tsv-resize-handle-bottom").forEach(element => {
