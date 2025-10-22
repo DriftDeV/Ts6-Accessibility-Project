@@ -170,7 +170,7 @@
         root.querySelectorAll(".tsv-virtual-list").forEach(element => {
           if (!element) return;
           element.removeAttribute("tabindex")
-        });
+        }); 
         root.querySelectorAll(".tsv-bar-item.tsv-sidebar-header-accessories.tsv-action-subtle.tsv-no-padding-right").forEach(element => {
           if (!element) return;
           element.removeAttribute("tabindex");
@@ -180,9 +180,9 @@
           if (!element) return;
           var level;
           level++;
-          var level_tostring = ''+level
+          var level_tostring = ''+level;
           safeSetAttr(element, "role", "group");
-          safeSetAttr(element, "tabindex", "0")
+          safeSetAttr(element, "tabindex", "0");
           safeSetAttr(element, "aria-label", element.querySelector(".ts-widget-section-header").querySelector(".title").textContent);
           safeSetAttr(element, "aria-level", level_tostring);
         });
@@ -191,7 +191,7 @@
         root.querySelectorAll(".vue-recycle-scroller.scroller.ts-server-tree-scroller.tsv-scrollbar-safe-area.ready.direction-vertical").forEach(element => {
           if (!element) return;
           safeSetAttr(element, "role", "group");
-          safeSetAttr(element, "tabindex", "0")
+          safeSetAttr(element, "tabindex", "0");
           safeSetAttr(element, "aria-label", "server-channels Group");
           safeSetAttr(element, "aria-level", "1");
         });
@@ -204,17 +204,21 @@
             safeSetAttr(element, "aria-label", element.querySelector(".tsv-item-text.tsv-flex-grow").querySelector(".tsv-text-truncate").textContent);
           };
         });
-        // Rendo Pulsanti i canali dei server
-        root.querySelectorAll(".ts-server-tree-item-node-content.channel.ts-server-tree-item-node-with-childs").forEach(element => {
-          if (!element) return;
-          safeSetAttr(element, "role", "button");
-          safeSetAttr(element, "tabindex", "0");
-          safeSetAttr(element, "aria-label", element.querySelector(".ts-server-tree-channel-info.tsv-tree-preserve-spaces.ts-server-tree-item-text.centered.banner").textContent);
+        //Rendo i bookmarks una lista
+        const bookmarks = root.querySelector(".bookmarks");
+        safeSetAttr(bookmarks, "role", "list");
+        //Aggiungo gli elementi della lista
+        root.querySelectorAll(".tsv-item.tsv-item-active-secondary.ts-bookmark-entry").forEach(listitem => {
+          safeSetAttr(listitem, "role", "listitem");
         });
-        root.querySelectorAll(".ts-server-tree-item-node-content.channel.ts-server-tree-item-key-without-chevron").forEach(element => {
-          if (!element) return;
-          safeSetAttr(element, "role", "button");
-          safeSetAttr(element, "tabindex", "0");
+
+        //Trasformo i contatti in una lista
+        const contacts = root.querySelector(".ts-contact-list");
+        safeSetAttr(contacts, "role", "list");
+        root.querySelectorAll(".tsv-virtual-list-item").forEach(contactEl => {
+          safeSetAttr(contactEl, "role", "itemlist");
+          safeSetAttr(contactEl, "aria-label", contactEl.querySelector(".tsv-item-text.tsv-flex-grow").querySelector(".tsv-text-truncate").textContent);
+          safeSetAttr(contactEl, "tabindex", "0");
         });
         //Aggiongo e nascondo i separatori
         root.querySelectorAll(".tsv-resize-handle.tsv-resize-handle-section.tsv-resize-handle-bottom").forEach(element => {
