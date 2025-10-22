@@ -15,6 +15,7 @@
 
   function applyA11y(root = document) {
     try {
+      //pulsanti / intestazioni
       root.querySelectorAll('.tsv-bar-item.tsv-action').forEach((el) => {
         if (!el) return;
         const hasRole = el.getAttribute && el.getAttribute('role');
@@ -26,8 +27,19 @@
           const label = svg.getAttribute('name') || el.getAttribute('title') || 'Action';
           safeSetAttr(el, 'aria-label', label);
         }
+        // Creo Banner
+        root.querySelectorAll('.tsv-header.tsv-highlight.tsv-sidebar-header').forEach(element => {
+          safeSetAttr(element, "role", "banner")
+          safeSetAttr(element, "tabindex", "0")
+        });
+        //Etichetto Pulsanti come "create teamspeak community" come Pulsante
+        root.querySelectorAll(".tsv-button-content.tsv-flex.tsv-flex-snd-center.ts-font-small").forEach(element =>{
+          safeSetAttr(element, "tabindex", "0")
+          safeSetAttr(element, "role", "button")
+        });
+        //Aggiungo Intestazione
         root.querySelectorAll('.ts-title-logo').forEach((el) => {
-          safeSetAttr (el, 'tabindex', '0')
+          safeSetAttr (el, 'tabindex', '0');
           safeSetAttr(el, 'role', 'heading');
           safeSetAttr(el, 'aria-label', 'Teamspeak');
       });
@@ -59,7 +71,7 @@
           }
         });
       });
-
+      //pulsanti SVG
       root.querySelectorAll('.ts-sidebar-tab-sub-panel-accessory').forEach((el) => {
         if (!el) return;
         const hasRole = el.getAttribute && el.getAttribute('role');
@@ -80,7 +92,7 @@
           safeSetAttr(el, 'aria-label', 'Server Group roles/Badges');
       });
       });
-
+      //Icone
       root.querySelectorAll('.tsv-icon.tsv-icon-stack').forEach((el) => {
         if (!el) return;
         const hasRole = el.getAttribute && el.getAttribute('role');
@@ -93,7 +105,7 @@
           safeSetAttr(el, 'aria-label', label);
         }
       });
-
+      //Tasti per espandere/Contrarre
       root.querySelectorAll('.ts-expander.tsv-tab-item').forEach((el) => {
         if (!el) return;
         const hasRole = el.getAttribute && el.getAttribute('role');
@@ -106,6 +118,7 @@
           safeSetAttr(el, 'aria-label', label);
         }
       });
+      //Menu di Espansione dei pulsanti
       root.querySelectorAll('.tsv-tool-button-context-menu-toggle').forEach((el) => {
         if (!el) return;
         const hasRole = el.getAttribute && el.getAttribute('role');
@@ -118,12 +131,12 @@
           safeSetAttr(el, 'aria-label', label);
         }
       });
-
+      //Settings Section
       let sett_header = root.querySelector(".tsv-settings-title")
       safeSetAttr(sett_header, 'tabindex', '0')
       safeSetAttr(sett_header, 'role', 'heading')
       safeSetAttr(sett_header, 'aria-label', 'Settings-Title')
-
+      //Intestazioni sezioni Impostazioni - Barra laterale
       root.querySelectorAll(".v-popper.tsv-sidebar-tab-header").forEach((el) => {
           if (!el) return;
           safeSetAttr(el, 'role', 'heading');
@@ -139,7 +152,16 @@
         // document.head può essere null in alcuni contesti; fallback
         (document.head || document.documentElement).appendChild(style);
       }
-      // Aggiungi più regole personalizzate qui per menu, liste, canali, pulsanti, ecc.
+      //divido in sezioni le tabs principani
+      root.querySelectorAll(".resources-section-container.tsv-flex-grow").forEach(element => {
+        safeSetAttr(element, "role", "section")
+        safeSetAttr(element, "tabindex", "0")
+      });
+      //Aggiongo i separatori
+      root.querySelectorAll(".tsv-resize-handle.tsv-resize-handle-section.tsv-resize-handle-bottom").forEach(element => {
+        safeSetAttr(element, "role", "separator")
+      });
+
     } catch (e) {
       console.error('[a11y] applyA11y error', e);
     }
