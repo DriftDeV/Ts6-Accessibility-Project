@@ -154,12 +154,22 @@
       }
       //divido in sezioni le tabs principani
       root.querySelectorAll(".resources-section-container.tsv-flex-grow").forEach(element => {
-        safeSetAttr(element, "role", "section")
+        safeSetAttr(element, "role", "section");
+        safeSetAttr(element, "tabindex", "0");
+      });
+      //divido in gruppi per navigazione più semplificata
+      root.querySelectorAll(".ts-widget-wrapper").forEach(element => {
+        var level;
+        level++;
+        var level_tostring = ''+level
+        safeSetAttr(element, "role", "group");
         safeSetAttr(element, "tabindex", "0")
+        safeSetAttr(element, "aria-label", element.querySelector(".ts-widget-section-header").querySelector(".title").textContent);
+        safeSetAttr(element, "aria-level", level_tostring);
       });
       //Aggiongo i separatori
       root.querySelectorAll(".tsv-resize-handle.tsv-resize-handle-section.tsv-resize-handle-bottom").forEach(element => {
-        safeSetAttr(element, "role", "separator")
+        safeSetAttr(element, "role", "separator");
       });
 
     } catch (e) {
