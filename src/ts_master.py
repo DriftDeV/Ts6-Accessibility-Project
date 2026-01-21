@@ -89,8 +89,13 @@ def launch_teamspeak(os_type):
         return False
 
     try:
-        # Launch non-blocking
-        subprocess.Popen(cmd)
+        # Launch non-blocking, suppressing output to detach from console
+        subprocess.Popen(
+            cmd, 
+            stdout=subprocess.DEVNULL, 
+            stderr=subprocess.DEVNULL, 
+            start_new_session=True
+        )
         print("[*] TeamSpeak process started.")
         return True
     except Exception as e:
