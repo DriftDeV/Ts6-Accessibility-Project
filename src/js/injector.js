@@ -8,7 +8,7 @@ const path = require('path');
 
 const REMOTE_DEBUG_PORT = 9222;
 const RECONNECT_INTERVAL_MS = 3000;
-const SCRIPT_PATH = path.join(__dirname, 'myAccess.js');
+const SCRIPT_PATH = path.join(__dirname, 'improved_accessibility.js');
 
 let stop = false;
 

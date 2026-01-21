@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ts6-accessibility-injector"
+version = "0.1.1"
+description = "Accessibility injector for TeamSpeak 6"
+requires-python = ">=3.8"
+dependencies = [
+    "requests",
+    "websocket-client"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
