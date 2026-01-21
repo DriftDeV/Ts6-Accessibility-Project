@@ -122,6 +122,20 @@
                 safeSetAttr(el, 'tabindex', '0');
             }
         },
+        {
+            name: "Sidebar Tab Items",
+            selector: ".tsv-tab-item",
+            match: () => true,
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'tab');
+                safeSetAttr(el, 'tabindex', '0');
+                if (el.classList.contains('active')) {
+                    safeSetAttr(el, 'aria-selected', 'true');
+                } else {
+                    safeSetAttr(el, 'aria-selected', 'false');
+                }
+            }
+        },
         
         // --- Navigation & Groups ---
         {
@@ -145,6 +159,17 @@
                 if (titleEl) {
                     safeSetAttr(el, 'aria-label', titleEl.textContent);
                 }
+            }
+        },
+        {
+            name: "Dashboard Widget (Join/Start)",
+            selector: ".tsv-dashboard-widget",
+            match: (el) => el.querySelector('.ts-font-large'),
+            apply: (el) => {
+                const title = el.querySelector('.ts-font-large').textContent;
+                safeSetAttr(el, 'role', 'article');
+                safeSetAttr(el, 'aria-label', title);
+                // The button inside handles the interaction, but the card itself describes it
             }
         },
         {
@@ -172,15 +197,15 @@
             apply: (el) => safeSetAttr(el, 'role', 'list')
         },
         {
-            name: "List Items (Virtual List / Contacts)",
-            selector: ".tsv-virtual-list-item",
+            name: "List Items (Virtual List / Contacts / Rooms)",
+            selector: ".tsv-virtual-list-item, .ts-room-list-item",
             match: () => true,
             apply: (el) => {
                 safeSetAttr(el, 'role', 'listitem');
                 safeSetAttr(el, 'tabindex', '0');
                 const textEl = el.querySelector(".tsv-text-truncate");
                 if (textEl) {
-                    safeSetAttr(el, 'aria-label', textEl.textContent);
+                    safeSetAttr(el, 'aria-label', textEl.textContent.trim());
                 }
             }
         },
@@ -219,11 +244,35 @@
         // --- Inputs & Controls ---
         {
             name: "Search Input",
-            selector: ".tsv-search-input, input.tsv-search-input",
+            selector: ".tsv-search-input, input.tsv-search-input, .server-search-input input, .ts-text-input-box input",
             match: () => true,
             apply: (el) => {
                 safeSetAttr(el, 'role', 'searchbox');
-                safeSetAttr(el, 'aria-label', 'Search or Connect');
+                const placeholder = el.getAttribute('placeholder');
+                safeSetAttr(el, 'aria-label', placeholder || 'Search or Connect');
+            }
+        },
+        {
+            name: "Input Action Buttons",
+            selector: ".ts-text-input-box-accept, .ts-text-input-box-delete, .ts-text-input-box-reveal",
+            match: () => true,
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'button');
+                safeSetAttr(el, 'tabindex', '0');
+                if (el.classList.contains('ts-text-input-box-accept')) safeSetAttr(el, 'aria-label', 'Submit');
+                if (el.classList.contains('ts-text-input-box-delete')) safeSetAttr(el, 'aria-label', 'Clear');
+                if (el.classList.contains('ts-text-input-box-reveal')) safeSetAttr(el, 'aria-label', 'Toggle Visibility');
+            }
+        },
+        {
+            name: "Pagination Controls",
+            selector: ".ts-pagination-horizontal .tsv-icon",
+            match: () => true,
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'button');
+                safeSetAttr(el, 'tabindex', '0');
+                if (el.classList.contains('prev-chevron')) safeSetAttr(el, 'aria-label', 'Previous Page');
+                if (el.classList.contains('next-chevron')) safeSetAttr(el, 'aria-label', 'Next Page');
             }
         },
         {
@@ -245,6 +294,12 @@
                 const svg = el.querySelector('svg');
                 const label = (svg && svg.getAttribute('name') || 'Toggle Section');
                 safeSetAttr(el, 'aria-label', label);
+                
+                if (el.classList.contains('collapsed')) {
+                    safeSetAttr(el, 'aria-expanded', 'false');
+                } else {
+                    safeSetAttr(el, 'aria-expanded', 'true');
+                }
             }
         },
         {
@@ -380,7 +435,7 @@
             style.id = 'ts-a11y-style';
             style.textContent = `
                 :focus { 
-                    outline: 3px solid #0056b3 !important; 
+                    outline: 3px solid #d9ff00 !important; 
                     outline-offset: 2px; 
                     z-index: 9999;
                 }
