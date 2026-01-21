@@ -43,14 +43,15 @@ def launch_teamspeak(os_type):
                 cmd = [
                     "flatpak", "run", 
                     "com.teamspeak.TeamSpeak", 
-                    f"--remote-debugging-port={DEBUG_PORT}"
+                    f"--remote-debugging-port={DEBUG_PORT}",
+                    "--force-renderer-accessibility"
                 ]
             else:
                 print("[!] TeamSpeak Flatpak not found. Assuming standard binary 'teamspeak' in PATH...")
-                cmd = ["teamspeak", f"--remote-debugging-port={DEBUG_PORT}"]
+                cmd = ["teamspeak", f"--remote-debugging-port={DEBUG_PORT}", "--force-renderer-accessibility"]
         except FileNotFoundError:
              print("[!] Flatpak not installed. Assuming binary 'teamspeak'...")
-             cmd = ["teamspeak", f"--remote-debugging-port={DEBUG_PORT}"]
+             cmd = ["teamspeak", f"--remote-debugging-port={DEBUG_PORT}", "--force-renderer-accessibility"]
 
     elif os_type == "windows":
         # Common installation paths for TeamSpeak
@@ -72,14 +73,15 @@ def launch_teamspeak(os_type):
             return False
             
         print(f"[*] Launching TeamSpeak from: {ts_path}")
-        cmd = [ts_path, f"--remote-debugging-port={DEBUG_PORT}"]
+        cmd = [ts_path, f"--remote-debugging-port={DEBUG_PORT}", "--force-renderer-accessibility"]
 
     elif os_type == "darwin": # macOS
         print("[*] Launching TeamSpeak (macOS)...")
         # Assuming standard Application path
         cmd = [
             "/Applications/TeamSpeak.app/Contents/MacOS/TeamSpeak",
-            f"--remote-debugging-port={DEBUG_PORT}"
+            f"--remote-debugging-port={DEBUG_PORT}",
+            "--force-renderer-accessibility"
         ]
         
     else:
