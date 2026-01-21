@@ -200,7 +200,22 @@
                 safeSetAttr(el, 'aria-label', label);
             }
         },
-
+        {
+            name: "Bookmark Cartelle",
+            selector: ".tsv-item.ts-bookmark-folder-box",
+            match: () => true,
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'listitem');
+                // Hide icon stack
+                const iconStack = el.querySelector('.tsv-item-icon-stack');
+                if (iconStack) safeSetAttr(iconStack, 'aria-hidden', 'true');
+                
+                // Label extraction
+                const textDiv = el.querySelector('.tsv-item-text .tsv-text-truncate');
+                const label = textDiv ? textDiv.textContent : 'Bookmark';
+                safeSetAttr(el, 'aria-label', label);
+            }
+        },
         // --- Inputs & Controls ---
         {
             name: "Search Input",
@@ -227,7 +242,9 @@
             apply: (el) => {
                 safeSetAttr(el, 'role', 'button');
                 safeSetAttr(el, 'tabindex', '0');
-                safeSetAttr(el, 'aria-label', 'Toggle Section');
+                const svg = el.querySelector('svg');
+                const label = (svg && svg.getAttribute('name') || 'Toggle Section');
+                safeSetAttr(el, 'aria-label', label);
             }
         },
         {
@@ -247,6 +264,15 @@
             apply: (el) => {
                 safeSetAttr(el, 'role', 'separator');
                 safeSetAttr(el, 'aria-hidden', 'true');
+            }
+        },
+        {
+            name: "Hide Auto Resize Overlay",
+            selector: ".tsv-resize-area-info",
+            match: (el) => el.textContent.includes('Auto Resize'),
+            apply: (el) => {
+                el.style.display = 'none';
+                el.setAttribute('aria-hidden', 'true');
             }
         },
         
@@ -289,7 +315,19 @@
                 safeSetAttr(el, 'aria-label', label);
             }
         },
-
+        {
+            name : "Search Hexagon",
+            selector : ".ts-sidebar-tab-sub-panel-accessory",
+            match: () => true,
+            apply: (el) => {
+                safeRemoveAttr(el, 'role');
+                safeSetAttr(el, 'role', 'button');
+                safeSetAttr(el, 'tabindex', '0');
+                const svg = el.querySelector('svg');
+                const label = (svg && svg.getAttribute('name') || "Button");
+                safeSetAttr(el, 'aria-label', label);
+            }
+        },
         // --- Cleanup Rules (Negative Tabindex) ---
         {
             name: "Remove Tabindex for Virtual Lists",
@@ -303,6 +341,7 @@
             match: () => true,
             apply: (el) => safeRemoveAttr(el, 'tabindex')
         },
+        // --- Gestione Liste server con labeling corretto ---
 
         // --- Generic Fallback (Must be last) ---
         {
@@ -312,10 +351,10 @@
             apply: (el) => {
                 const svg = el.querySelector('svg');
                 if (svg) {
-                    const name = svg.getAttribute('name') || 'Action';
+                    const label = svg.getAttribute('name') || 'Action';
                     safeSetAttr(el, 'role', 'button');
                     safeSetAttr(el, 'tabindex', '0');
-                    safeSetAttr(el, 'aria-label', name);
+                    safeSetAttr(el, 'aria-label', label);
                 }
             }
         }
@@ -351,9 +390,47 @@
         }
     }
 
+    // --- Keyboard Interaction Handling ---
+    function handleKeyboardActivation(e) {
+        // Only handle Enter (13) or Space (32)
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+
+        const el = e.target;
+        if (!el) return;
+
+        // check if element is natively interactive to avoid double-handling
+        const tagName = el.tagName.toLowerCase();
+        if (tagName === 'button' || tagName === 'input' || tagName === 'textarea' || tagName === 'select') return;
+        if (tagName === 'a' && el.hasAttribute('href')) return; 
+
+        // Check for relevant roles
+        const role = el.getAttribute('role');
+        const interactiveRoles = ['button', 'link', 'menuitem', 'menuitemcheckbox', 'menuitemradio', 'option', 'tab', 'switch', 'checkbox', 'radio', 'treeitem'];
+        
+        if (role && interactiveRoles.includes(role)) {
+            // Prevent scrolling for Space
+            if (e.key === ' ') {
+                e.preventDefault();
+            }
+            
+            // Trigger click
+            // Create a synthetic click event to ensure event bubbling works as expected
+            const clickEvent = new MouseEvent('click', {
+                view: window,
+                bubbles: true,
+                cancelable: true
+            });
+            el.dispatchEvent(clickEvent);
+            console.log(`[A11y] Simulated click on ${role}`);
+        }
+    }
+
     // --- Initialization ---
 
     function init() {
+        // 0. Setup Global Listeners
+        document.addEventListener('keydown', handleKeyboardActivation);
+
         // 1. Hook Router
         let app = findVueRoot();
         if (app) {
