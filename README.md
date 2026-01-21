@@ -92,10 +92,28 @@ Ogni modifica è definita come una regola:
 {
     name: "Nome Regola",
     selector: ".classe-target",
-    match: (el) => condizione_booleana(el),
+    match: (el) => condizione_booleana(el), // Filtro logico (opzionale)
     apply: (el) => azione_di_modifica(el)
 }
 ```
+
+**Dettaglio Parametro `match`:**
+La funzione `match` (el => boolean) agisce come filtro secondario. Restituisce `true` se la regola deve essere applicata, permettendo controlli logici avanzati (es. testo, attributi) che i selettori CSS non coprono.
+
+
+### 🔍 Dettaglio Parametro `match`
+Il parametro `match` è una funzione di filtro (callback) che determina se la regola deve essere applicata all'elemento trovato dal `selector`.
+
+**Sintassi:** `match: (el) => condizione`
+
+*   **`el`**: Rappresenta l'elemento HTML trovato. È un oggetto DOM standard su cui puoi usare proprietà come `.textContent`, `.getAttribute()`, `.classList`, ecc.
+*   **Ritorno**: Deve sempre restituire un booleano (`true` o `false`). Se restituisce `true`, la funzione `apply` viene eseguita.
+
+#### Casi d'uso comuni:
+1.  **Sempre Attivo**: `match: (el) => true`
+2.  **Filtro per Testo**: `match: (el) => el.textContent.includes('Impostazioni')`
+3.  **Filtro per Attributi**: `match: (el) => el.getAttribute('name') === 'settings'`
+4.  **Filtro per Struttura**: `match: (el) => el.querySelector('svg') !== null`
 
 ## Strategie Specifiche per TeamSpeak (Analisi DOM)
 
