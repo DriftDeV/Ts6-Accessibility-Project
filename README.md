@@ -257,4 +257,7 @@ apply: (el) => {
 4.  Riavvia l'injector (`python src/ts_master.py` o `node src/js/injector.js`).
 5.  Verifica con uno screen reader o ispezionando il DOM live.
 
-```
+## TODO
+
+- **Focus Dinamico**: in questo momento lo screen reader perde il focus molto facilmente e quindi la navigazione risulta ostica
+- **Gestione Finestre overlay**: gestione delle finestre di overlay che nono sono accessibili in questo momento come server info
