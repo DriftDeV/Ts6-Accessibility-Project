@@ -8,7 +8,8 @@ const path = require('path');
 
 const REMOTE_DEBUG_PORT = 9222;
 const RECONNECT_INTERVAL_MS = 3000;
-const SCRIPT_PATH = path.join(__dirname, 'improved_accessibility.js');
+const RULES_PATH = path.join(__dirname, 'accessibility_rules.js');
+const MAIN_SCRIPT_PATH = path.join(__dirname, 'improved_accessibility.js');
 
 let stop = false;
 
@@ -24,7 +25,9 @@ async function connectAndInject() {
       await Page.enable();
 
       // Leggi il payload JS da iniettare
-      const scriptSource = fs.readFileSync(SCRIPT_PATH, 'utf8');
+      const rulesSource = fs.readFileSync(RULES_PATH, 'utf8');
+      const mainSource = fs.readFileSync(MAIN_SCRIPT_PATH, 'utf8');
+      const scriptSource = rulesSource + "\n" + mainSource;
 
       // 1) Assicurati che lo script venga eseguito in tutti i nuovi document (prima che la pagina esegua i suoi script)
       const { identifier } = await Page.addScriptToEvaluateOnNewDocument({ source: scriptSource });

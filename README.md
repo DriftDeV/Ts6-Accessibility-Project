@@ -94,7 +94,26 @@ Guida strategica per l'iniezione di accessibilità nel client TeamSpeak 6.
 
 ## Architettura del Sistema
 
-Il sistema utilizza `enhanced_accessibility.js` per scansionare il DOM in tempo reale. A causa della natura dinamica di Vue.js (framework usato da TS6), gli elementi vengono creati e distrutti continuamente. Il nostro script usa un `MutationObserver` per riapplicare le regole quando necessario.
+Il sistema utilizza due script principali situati in `src/js/`:
+1.  **`accessibility_rules.js`**: Contiene l'array di regole (`window.tsA11yRules`) che definiscono le modifiche al DOM. **Qui è dove dovrai aggiungere nuove funzionalità.**
+2.  **`improved_accessibility.js`**: Il motore che esegue la scansione del DOM, osserva le modifiche (MutationObserver) e applica le regole definite nel primo file.
+
+### Come Aggiungere Nuove Regole
+Per aggiungere una nuova regola di accessibilità, modifica il file **`src/js/accessibility_rules.js`**.
+Aggiungi un nuovo oggetto all'array `window.tsA11yRules`:
+
+```javascript
+{
+    name: "Nome Descrittivo Regola",
+    selector: ".classe-target-css",
+    match: (el) => true, // Oppure una condizione specifica: el.textContent.includes('...')
+    apply: (el) => {
+        // Logica di applicazione
+        safeSetAttr(el, 'role', 'button');
+        safeSetAttr(el, 'aria-label', 'Nuova Funzione');
+    }
+}
+```
 
 ### Il Cuore: Array di Regole
 Ogni modifica è definita come una regola:
@@ -199,6 +218,19 @@ L'input di ricerca `input.tsv-search-input` ha un placeholder ma potrebbe mancar
 }
 ```
 
+### 5. Albero Server (Server Tree)
+Abbiamo identificato la struttura del server connesso e aggiunto regole specifiche per:
+- **Client**: Rileva nickname e stato (Talking/Muted) analizzando le icone SVG interne (`client-detailed-talking`, ecc.).
+- **Canali**: Rileva il nome e se è protetto da password o pieno.
+- **Spacer**: Trattati come separatori o intestazioni se contengono testo.
+
+### 6. Chat e Impostazioni
+- **Chat**: I messaggi sono contrassegnati come `article` e l'area di input come `textbox` editabile.
+- **Impostazioni**: Le categorie laterali sono trattate come `tab` selezionabili.
+
+### 7. Modali e Dialoghi
+- **Finestre Modali**: Rileva contenitori con classe `.tsv-modal-container` e assegna il ruolo `dialog` e l'attributo `aria-modal="true"`. Tenta di associare automaticamente un titolo tramite `aria-labelledby`.
+
 ## Pattern Generici (Reference)
 
 ### Aggiungere Etichette (aria-label)
@@ -221,8 +253,8 @@ apply: (el) => {
 **Ciclo di Sviluppo:**
 1.  Esegui il dump del DOM corrente se non sei sicuro della struttura (`python dump_dom.py`).
 2.  Analizza il file HTML generato nella cartella `dumps/dom/`.
-3.  Crea una nuova regola in `enhanced_accessibility.js` basata sui selettori trovati.
-4.  Riavvia l'injector (`python ts_master.py`).
+3.  Crea una nuova regola in `src/js/accessibility_rules.js` basata sui selettori trovati.
+4.  Riavvia l'injector (`python src/ts_master.py` o `node src/js/injector.js`).
 5.  Verifica con uno screen reader o ispezionando il DOM live.
 
 ```

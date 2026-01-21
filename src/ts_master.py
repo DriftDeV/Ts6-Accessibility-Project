@@ -17,7 +17,10 @@ except ImportError:
 
 # Configuration
 DEBUG_PORT = 9222
-INJECT_SCRIPT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "js", "improved_accessibility.js")
+INJECT_SCRIPT_PATHS = [
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "js", "accessibility_rules.js"),
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "js", "improved_accessibility.js")
+]
 
 def get_os_info():
     system = platform.system().lower()
@@ -195,13 +198,14 @@ def main():
     # 2. Wait for initialization
     time.sleep(3)
     
-    # 3. Read the Accessibility Script
-    if not os.path.exists(INJECT_SCRIPT_PATH):
-        print(f"[!] Error: {INJECT_SCRIPT_PATH} not found.")
-        return
-
-    with open(INJECT_SCRIPT_PATH, "r", encoding='utf-8') as f:
-        script_content = f.read()
+    # 3. Read the Accessibility Scripts
+    script_content = ""
+    for path_ in INJECT_SCRIPT_PATHS:
+        if not os.path.exists(path_):
+            print(f"[!] Error: {path_} not found.")
+            return
+        with open(path_, "r", encoding='utf-8') as f:
+            script_content += f.read() + "\n"
 
     # 4. Connect and Inject
     ws_url = get_websocket_debugger_url()

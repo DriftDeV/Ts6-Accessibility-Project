@@ -1,7 +1,7 @@
 import json
 import time
 import sys
-from ts_master import get_websocket_debugger_url, INJECT_SCRIPT_PATH
+from ts_master import get_websocket_debugger_url, INJECT_SCRIPT_PATHS
 
 try:
     import websocket
@@ -93,8 +93,10 @@ def debug_inject(ws_url, script_content):
             ws.close()
 
 def main():
-    with open(INJECT_SCRIPT_PATH, "r", encoding='utf-8') as f:
-        script_content = f.read()
+    script_content = ""
+    for path in INJECT_SCRIPT_PATHS:
+        with open(path, "r", encoding='utf-8') as f:
+            script_content += f.read() + "\n"
 
     ws_url = get_websocket_debugger_url()
     if ws_url:
