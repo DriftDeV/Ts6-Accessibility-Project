@@ -33,6 +33,17 @@ Una volta fatto il setup, per avviare il tool ti basterà eseguire:
 
 ## 🐧 Linux / 🍎 macOS
 
+### 🍎 macOS (Metodo Semplificato)
+Per avviare rapidamente l'injector su macOS:
+1.  Fai doppio clic sul file **`start_teamspeak.command`** presente nella cartella principale.
+2.  Se è la prima volta, lo script eseguirà automaticamente il setup necessario.
+3.  **Nota Importante:** Alla prima esecuzione, macOS potrebbe bloccare lo script per motivi di sicurezza. Per aprirlo:
+    *   Fai **clic destro** (o Control-clic) su `start_teamspeak.command`.
+    *   Seleziona **Apri** dal menu contestuale.
+    *   Clicca su **Apri** nella finestra di dialogo di conferma.
+
+### 🐧 Linux / 🍎 macOS (Terminale)
+
 ### 1. Prima Installazione
 Apri il terminale nella cartella del progetto ed esegui il comando:
 ```bash
