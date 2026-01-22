@@ -483,7 +483,7 @@
                         let menuItems = menu.querySelectorAll('.tsv-item');
                         menuItems.forEach((item, index) => {
                             let itemContainer = item.querySelector('.tsv-item-container');
-                            if(itemContainer) {
+                            if (itemContainer) {
                                 safeSetAttr(itemContainer, 'role', 'menuitem');
                                 safeSetAttr(itemContainer, 'tabindex', '0');
                                 const label = itemContainer.querySelector('.tsv-text-truncate').textContent;
@@ -506,24 +506,24 @@
                     safeSetAttr(mainWindow, 'role', 'dialog');
                     safeSetAttr(mainWindow, 'aria-modal', 'true');
                     safeSetAttr(mainWindow, 'aria-label', 'Screen Share Overlay Window');
-                    
+
                     let stream_preview = mainWindow.querySelector('.setup-stream__preview-wrapper');
                     if (stream_preview) {
                         safeSetAttr(stream_preview, 'role', 'img');
                         safeSetAttr(stream_preview, 'aria-label', 'Screen Share Preview');
                         safeSetAttr(stream_preview, 'aria-hidden', 'false');
-                    } 
-                    
+                    }
+
                     let mainSection = mainWindow.querySelector('.tsv-flex-grow.tsv-flex-column');
                     if (mainSection) {
                         safeSetAttr(mainSection, 'role', 'region');
                         safeSetAttr(mainSection, 'aria-label', 'Screen Share Main Window');
-                        
+
                         let top_bar = mainSection.querySelector('.tabs');
                         if (top_bar) {
                             safeSetAttr(top_bar, 'role', 'tablist');
                             safeSetAttr(top_bar, 'aria-label', 'Screen Share Source Types');
-                            
+
                             let tabs = top_bar.querySelectorAll('.tab-item');
                             tabs.forEach(tab => {
                                 safeSetAttr(tab, 'role', 'tab');
@@ -533,7 +533,7 @@
                                 safeSetAttr(tab, 'aria-selected', tab.classList.contains('tab-item-active') ? 'true' : 'false');
                             });
                         }
-                        
+
                         let source_selector = mainSection.querySelector('.tsv-scroll-area-v');
                         if (source_selector) {
                             safeSetAttr(source_selector, 'role', 'region');
@@ -592,6 +592,8 @@
                     if (heading) {
                         safeSetAttr(heading, 'role', 'heading');
                         safeSetAttr(heading, 'aria-level', '2');
+
+
                     }
                 }
             }
