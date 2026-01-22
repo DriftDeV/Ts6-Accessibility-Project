@@ -576,7 +576,26 @@
                 }
             }
         },
-
+        // Setup Stream Settings Accessibiity
+        {
+            name: "Setup Stream Settings Region",
+            selector: ".setup-stream__settings",
+            match: () => true,
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'region');
+                safeSetAttr(el, 'aria-label', 'Setup Stream Settings');
+                let upper_section = el.querySelector('.setup-stream__settings-section');
+                if (upper_section) {
+                    safeSetAttr(upper_section, 'role', 'region');
+                    safeSetAttr(upper_section, 'aria-label', 'Setup Stream Settings Section');
+                    let heading = upper_section.querySelector('.ts-expeander');
+                    if (heading) {
+                        safeSetAttr(heading, 'role', 'heading');
+                        safeSetAttr(heading, 'aria-level', '2');
+                    }
+                }
+            }
+        },
         // -- [SECTION I] : Cleanup & Fallbacks ---
         // [DESCRIPTION] Final housekeeping for generic elements and removing artifacts.
         {
