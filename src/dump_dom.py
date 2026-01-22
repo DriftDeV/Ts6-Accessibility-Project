@@ -74,7 +74,14 @@ def main():
             if "result" in data and "result" in data["result"] and "value" in data["result"]["result"]:
                 html_content = data["result"]["result"]["value"]
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                filename = f"snapshot_{timestamp}.html"
+                default_filename = f"snapshot_{timestamp}.html"
+                
+                filename_input = input(f"Enter filename [default: {default_filename}]: ").strip()
+                filename = filename_input if filename_input else default_filename
+                
+                if not filename.endswith(".html"):
+                    filename += ".html"
+                
                 save_dom(html_content, filename)
             else:
                 print(f"[!] Error retrieving DOM: {data}")
