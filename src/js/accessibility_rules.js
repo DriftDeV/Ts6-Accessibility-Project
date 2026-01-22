@@ -547,8 +547,13 @@
                                     safeSetAttr(item, 'role', 'listitem');
                                     safeSetAttr(item, 'tabindex', '0');
                                     const titleEl = item.querySelector('.thumbnail-title.ts-font-small');
+                                    safeSetAttr(titleEl, 'aria-hidden', 'true');
                                     const label = titleEl ? titleEl.textContent : 'Screen Source';
                                     safeSetAttr(item, 'aria-label', cleanLabel(label));
+                                    let thumbnail_minimized = item.querySelector('.thumbnail-img-minimized');
+                                    safeSetAttr(thumbnail_minimized, 'aria-hidden', 'true');
+                                    let thumbnail_maximized = item.querySelector('.thumbnail-img');
+                                    safeSetAttr(thumbnail_maximized, 'aria-hidden', 'true');
                                 })
                             }
                         }
