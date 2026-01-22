@@ -231,6 +231,25 @@ Abbiamo identificato la struttura del server connesso e aggiunto regole specific
 ### 7. Modali e Dialoghi
 - **Finestre Modali**: Rileva contenitori con classe `.tsv-modal-container` e assegna il ruolo `dialog` e l'attributo `aria-modal="true"`. Tenta di associare automaticamente un titolo tramite `aria-labelledby`.
 
+### 8. Gestione Automatica del Focus
+Nelle Single Page Applications (SPA) come TeamSpeak 6, il cambio di pagina non ricarica il browser. Lo screen reader potrebbe rimanere "bloccato" su un elemento vecchio o perdere il contesto.
+
+**Strategia Implementata:**
+Utilizziamo l'hook `afterEach` del router Vue per intercettare il cambio di rotta e spostare forzatamente il focus sul contenitore principale o sul titolo della nuova pagina.
+
+```javascript
+app.$router.afterEach((to, from) => {
+    setTimeout(() => {
+        // Cerca il titolo o il main
+        let target = document.querySelector('h1, main, #app');
+        if (target) {
+            target.setAttribute('tabindex', '-1');
+            target.focus();
+        }
+    }, 500);
+});
+```
+
 ## Pattern Generici (Reference)
 
 ### Aggiungere Etichette (aria-label)
@@ -259,5 +278,5 @@ apply: (el) => {
 
 ## TODO
 
-- **Focus Dinamico**: in questo momento lo screen reader perde il focus molto facilmente e quindi la navigazione risulta ostica
-- **Gestione Finestre overlay**: gestione delle finestre di overlay che nono sono accessibili in questo momento come server info
+- **Miglioramento Focus Dinamico**: rifinire la selezione dell'elemento target dopo la navigazione per diverse pagine.
+- **Gestione Finestre overlay**: gestione delle finestre di overlay che nono sono accessibili in questo momento come server info.

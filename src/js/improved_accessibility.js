@@ -72,7 +72,20 @@
             else if (to.path.includes('chat')) pageName = "Chat";
             
             TTS.announce(`Navigated to ${pageName}`);
-            setTimeout(() => applyRules(document), 500); 
+            
+            setTimeout(() => {
+                applyRules(document);
+                
+                // Automatic Focus Management
+                let mainFocus = document.querySelector('h1, main, [role="main"]');
+                if (!mainFocus) mainFocus = document.getElementById('app');
+                
+                if (mainFocus) {
+                    safeSetAttr(mainFocus, 'tabindex', '-1');
+                    mainFocus.focus();
+                    console.log(`[A11y] Focus moved to ${mainFocus.tagName} for navigation to ${pageName}`);
+                }
+            }, 500); 
         });
         TTS.announce("TeamSpeak Accessibility Loaded. Current page: " + (app.$route.name || "Home"));
     }
