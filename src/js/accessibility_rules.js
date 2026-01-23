@@ -26,6 +26,23 @@
 
     window.tsA11yRules = [
 
+        // TS SPLASH ICON AND BUTTO Initial Screen
+        {
+            name: "Splash Icon and Button",
+            selector: ".ts-first-launch-splash-icons, .ts-first-launch-splash-button",
+            match: () => true,
+            apply: (el) => {
+                if (el.classList.contains('ts-first-launch-splash-icons')) {
+                    safeSetAttr(el, 'role', 'img');
+                    safeSetAttr(el, 'tabindex', '0');
+                    safeSetAttr(el, 'aria-label', 'TeamSpeak Logo');
+                } else if (el.classList.contains('ts-first-launch-splash-button')) {
+                    safeSetAttr(el, 'role', 'button');
+                    safeSetAttr(el, 'tabindex', '0');
+                    safeSetAttr(el, 'aria-label', 'Get Started');
+                }
+            }
+        },
         // -- [SECTION A] : Landmarks & Page Structure ---
         // [DESCRIPTION] Defines major regions (Main, Banner, Sidebar) for quick navigation.
         {
@@ -589,13 +606,13 @@
                     settings_sections.forEach(section => {
                         safeSetAttr(section, 'role', 'region');
                         safeSetAttr(section, 'aria-label', 'Setup Stream Settings Section');
-                        
+
                         let heading = section.querySelector('.ts-expander');
                         if (heading) {
                             safeSetAttr(heading, 'role', 'heading');
                             safeSetAttr(heading, 'aria-level', '2');
                             safeSetAttr(heading, 'tabindex', '0');
-                            
+
                             const labelContainer = heading.querySelector('.label');
                             const labelText = labelContainer ? labelContainer.querySelector('.ts-font-large') : null;
                             if (labelText) {
@@ -620,8 +637,8 @@
                                 if (controls) {
                                     safeSetAttr(controls, 'role', 'group');
                                     safeSetAttr(controls, 'tabindex', '0');
-                                    if(labelEl) safeSetAttr(controls, 'aria-label', cleanLabel(labelEl.textContent));
-                                    
+                                    if (labelEl) safeSetAttr(controls, 'aria-label', cleanLabel(labelEl.textContent));
+
                                     let buttons = controls.querySelectorAll('.tsv-segmented-button');
                                     buttons.forEach(button => {
                                         safeSetAttr(button, 'role', 'button');
