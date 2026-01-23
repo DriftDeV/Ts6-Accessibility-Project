@@ -584,17 +584,56 @@
             apply: (el) => {
                 safeSetAttr(el, 'role', 'region');
                 safeSetAttr(el, 'aria-label', 'Setup Stream Settings');
-                let upper_section = el.querySelector('.setup-stream__settings-section');
-                if (upper_section) {
-                    safeSetAttr(upper_section, 'role', 'region');
-                    safeSetAttr(upper_section, 'aria-label', 'Setup Stream Settings Section');
-                    let heading = upper_section.querySelector('.ts-expeander');
-                    if (heading) {
-                        safeSetAttr(heading, 'role', 'heading');
-                        safeSetAttr(heading, 'aria-level', '2');
+                let settings_sections = el.querySelectorAll('.setup-stream__settings-section');
+                if (settings_sections) {
+                    settings_sections.forEach(section => {
+                        safeSetAttr(section, 'role', 'region');
+                        safeSetAttr(section, 'aria-label', 'Setup Stream Settings Section');
+                        
+                        let heading = section.querySelector('.ts-expander');
+                        if (heading) {
+                            safeSetAttr(heading, 'role', 'heading');
+                            safeSetAttr(heading, 'aria-level', '2');
+                            safeSetAttr(heading, 'tabindex', '0');
+                            
+                            const labelContainer = heading.querySelector('.label');
+                            const labelText = labelContainer ? labelContainer.querySelector('.ts-font-large') : null;
+                            if (labelText) {
+                                safeSetAttr(heading, 'aria-label', cleanLabel(labelText.textContent));
+                            }
+                        }
 
+                        let advanced_settings_rows = section.querySelectorAll('.tsv-flex-row');
+                        advanced_settings_rows.forEach(row => {
+                            safeSetAttr(row, 'role', 'group');
+                            safeSetAttr(row, 'tabindex', '0');
+                            // FIX: Label selector logic was too specific/incorrect
+                            const labelEl = row.querySelector('.tsv-label-inline') || row.querySelector('label');
+                            if (labelEl) {
+                                safeSetAttr(row, 'aria-label', cleanLabel(labelEl.textContent));
+                            }
 
-                    }
+                            // Handling controls
+                            let flex1 = row.querySelector('.tsv-flex-1');
+                            if (flex1) {
+                                let controls = flex1.querySelector('.tsv-segmented-control');
+                                if (controls) {
+                                    safeSetAttr(controls, 'role', 'group');
+                                    safeSetAttr(controls, 'tabindex', '0');
+                                    if(labelEl) safeSetAttr(controls, 'aria-label', cleanLabel(labelEl.textContent));
+                                    
+                                    let buttons = controls.querySelectorAll('.tsv-segmented-button');
+                                    buttons.forEach(button => {
+                                        safeSetAttr(button, 'role', 'button');
+                                        safeSetAttr(button, 'tabindex', '0');
+                                        const btnLabel = button.textContent;
+                                        safeSetAttr(button, 'aria-label', cleanLabel(btnLabel));
+                                        safeSetAttr(button, 'aria-pressed', button.classList.contains('active') ? 'true' : 'false');
+                                    })
+                                }
+                            }
+                        })
+                    })
                 }
             }
         },
