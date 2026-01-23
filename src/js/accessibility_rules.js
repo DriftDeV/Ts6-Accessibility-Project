@@ -52,6 +52,99 @@
                 }
             }
         },
+        // LICENSE AGREEMENT SCREEN
+        {
+            name: "License Agreement Screen",
+            selector: ".ts-first-launch-terms-conditions-container",
+            match: () => true,
+            apply: (el) => {
+                // 1. Make the scrollable text area accessible
+                const scrollContainer = el.querySelector('.ts-first-launch-terms-conditions');
+                if (scrollContainer) {
+                    safeSetAttr(scrollContainer, 'role', 'region');
+                    safeSetAttr(scrollContainer, 'aria-label', 'Terms and Conditions Text');
+                    safeSetAttr(scrollContainer, 'tabindex', '0');
+                }
+
+                // 2. Enhance the Buttons (Accept/Reject)
+                const buttons = el.querySelectorAll('.tsv-button');
+                buttons.forEach(btn => {
+                    const text = btn.textContent.trim();
+                    safeSetAttr(btn, 'role', 'button');
+                    safeSetAttr(btn, 'tabindex', '0');
+                    safeSetAttr(btn, 'aria-label', text);
+                    
+                    if (btn.classList.contains('disabled')) {
+                        safeSetAttr(btn, 'aria-disabled', 'true');
+                    } else {
+                        safeRemoveAttr(btn, 'aria-disabled');
+                    }
+                });
+
+                // 3. Add a "Scroll to Bottom" button helper
+                if (!el.querySelector('.ts-a11y-scroll-helper')) {
+                    const buttonContainer = el.querySelector('.ts-first-launch-button-pocket');
+                    if (buttonContainer && scrollContainer) {
+                        const scrollBtn = document.createElement('div');
+                        scrollBtn.className = 'tsv-button tsv-button-tinted ts-a11y-scroll-helper';
+                        scrollBtn.style.marginBottom = '10px';
+                        scrollBtn.style.cursor = 'pointer';
+                        scrollBtn.innerHTML = '<div class="tsv-button-content tsv-flex tsv-flex-snd-center">Scroll to Bottom</div>';
+                        
+                        safeSetAttr(scrollBtn, 'role', 'button');
+                        safeSetAttr(scrollBtn, 'tabindex', '0');
+                        safeSetAttr(scrollBtn, 'aria-label', 'Scroll to end of agreement to enable Accept button');
+
+                        scrollBtn.onclick = () => {
+                            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+                            scrollContainer.dispatchEvent(new Event('scroll'));
+                        };
+
+                        scrollBtn.onkeydown = (e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                scrollBtn.click();
+                            }
+                        };
+
+                        buttonContainer.insertBefore(scrollBtn, buttonContainer.firstChild);
+                    }
+                }
+            }
+        },
+
+        // Sign In Accessibility
+        {
+            name: "Sign In",
+            selector: ".ts-first-launch-login-myts-container",
+            match: () => true,
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'region');
+                safeSetAttr(el, 'aria-label', 'Sign In');
+                safeSetAttr(el, 'tabindex', '0');
+
+                let login_input_box = el.querySelector('.ts-first-launch-login-myts-input');
+                if (login_input_box) {
+                    let text_fields = login_input_box.querySelectorAll('.ts-text-input-box');
+                    text_fields.forEach((field) => {
+                        safeSetAttr(field, 'role', 'textbox');
+                        safeSetAttr(field, 'tabindex', '0');
+                    });
+                }
+                let buttonset = el.querySelector('.ts-first-launch-login-myts-buttonset');
+                if (buttonset) {
+                    let buttons = buttonset.querySelectorAll('.tsv-button');
+                    buttons.forEach((button) => {
+                        safeSetAttr(button, 'role', 'button');
+                        safeSetAttr(button, 'tabindex', '0');
+                        const content = button.querySelector('.tsv-button-content');
+                        const text = content ? content.textContent.trim() : 'Button';
+                        safeSetAttr(button, 'aria-label', text);
+                    });
+                }
+            }
+        },
+
         // -- [SECTION A] : Landmarks & Page Structure ---
         // [DESCRIPTION] Defines major regions (Main, Banner, Sidebar) for quick navigation.
         {
