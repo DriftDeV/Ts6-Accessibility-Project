@@ -229,6 +229,20 @@
                         const heading = container.querySelector('.ts-first-launch-title');
                         if (heading) focusElement(heading, "Account Recovery Key");
                     }
+
+                    // 9. Pick a Theme
+                    if (node.matches('.ts-first-launch-pick-theme-container') || node.querySelector('.ts-first-launch-pick-theme-container')) {
+                        const container = node.matches('.ts-first-launch-pick-theme-container') ? node : node.querySelector('.ts-first-launch-pick-theme-container');
+                        const heading = container.querySelector('.ts-first-launch-title');
+                        if (heading) focusElement(heading, "Pick a Theme");
+                    }
+
+                    // 10. Setup Finished
+                    if (node.matches('.ts-first-launch-finish') || node.querySelector('.ts-first-launch-finish')) {
+                        const container = node.matches('.ts-first-launch-finish') ? node : node.querySelector('.ts-first-launch-finish');
+                        const heading = container.querySelector('.ts-first-launch-subtitle');
+                        if (heading) focusElement(heading, "Setup Finished");
+                    }
                 });
             } 
             // Case 2: Visibility Changes (Attributes)
@@ -291,6 +305,24 @@
                     if (isVisible) {
                          const heading = target.querySelector('.ts-first-launch-title');
                         if (heading) focusElement(heading, "Account Recovery Key");
+                    }
+                }
+
+                // Pick a Theme Visibility Toggle
+                if (target.matches('.ts-first-launch-pick-theme-container')) {
+                    const isVisible = target.style.visibility !== 'hidden' && target.style.display !== 'none';
+                    if (isVisible) {
+                        const heading = target.querySelector('.ts-first-launch-title');
+                        if (heading) focusElement(heading, "Pick a Theme");
+                    }
+                }
+
+                // Setup Finished Visibility Toggle
+                if (target.matches('.ts-first-launch-finish')) {
+                    const isVisible = target.style.visibility !== 'hidden' && target.style.display !== 'none';
+                    if (isVisible) {
+                        const heading = target.querySelector('.ts-first-launch-subtitle');
+                        if (heading) focusElement(heading, "Setup Finished");
                     }
                 }
             }

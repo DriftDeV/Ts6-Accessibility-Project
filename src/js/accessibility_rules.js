@@ -371,6 +371,96 @@
             }
         },
 
+        // Pick a Theme
+        {
+            name: "Pick a Theme",
+            selector: ".ts-first-launch-pick-theme-container",
+            match: () => true,
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'region');
+                safeSetAttr(el, 'aria-label', 'Pick a Theme');
+                safeSetAttr(el, 'tabindex', '0');
+
+                const heading = el.querySelector('.ts-first-launch-title');
+                if (heading) {
+                    safeSetAttr(heading, 'role', 'heading');
+                    safeSetAttr(heading, 'aria-level', '1');
+                    safeSetAttr(heading, 'tabindex', '0');
+                }
+
+                const list = el.querySelector('.ts-first-launch-pick-theme-preview-items');
+                if (list) {
+                    safeSetAttr(list, 'role', 'radiogroup');
+                    safeSetAttr(list, 'aria-label', 'Theme Selection');
+                }
+
+                const items = el.querySelectorAll('.ts-first-launch-pick-theme-preview-item');
+                items.forEach(item => {
+                    safeSetAttr(item, 'role', 'radio');
+                    safeSetAttr(item, 'tabindex', '0');
+                    
+                    const titleSpan = item.querySelector('.ts-first-launch-pick-theme-preview-item-title span:first-child');
+                    const label = titleSpan ? titleSpan.textContent.trim() : 'Theme option';
+                    safeSetAttr(item, 'aria-label', label);
+
+                    const inner = item.querySelector('.ts-first-launch-pick-theme-preview-inner');
+                    const isSelected = inner && inner.classList.contains('selected');
+                    safeSetAttr(item, 'aria-checked', isSelected ? 'true' : 'false');
+                });
+
+                // Continue Button
+                const btn = el.querySelector('.ts-first-launch-button-pocket .tsv-button');
+                if (btn) {
+                    safeSetAttr(btn, 'role', 'button');
+                    safeSetAttr(btn, 'tabindex', '0');
+                    safeSetAttr(btn, 'aria-label', 'Continue');
+                }
+                
+                // Back Button
+                const backBtn = el.querySelector('.ts-first-launch-back');
+                if (backBtn) {
+                    safeSetAttr(backBtn, 'role', 'button');
+                    safeSetAttr(backBtn, 'tabindex', '0');
+                    safeSetAttr(backBtn, 'aria-label', 'Go Back');
+                }
+            }
+        },
+
+        // Setup Finished
+        {
+            name: "Setup Finished",
+            selector: ".ts-first-launch-finish",
+            match: () => true,
+            apply: (el) => {
+                const heading = el.querySelector('.ts-first-launch-subtitle');
+                if (heading) {
+                    safeSetAttr(heading, 'role', 'heading');
+                    safeSetAttr(heading, 'aria-level', '1');
+                    safeSetAttr(heading, 'tabindex', '0');
+                }
+
+                const explainer = el.querySelector('.ts-first-launch-finish-explainer');
+                if (explainer) {
+                    safeSetAttr(explainer, 'role', 'article');
+                    safeSetAttr(explainer, 'tabindex', '0');
+                }
+
+                const finishBtn = el.querySelector('.ts-first-launch-finish-buttonset .tsv-button');
+                if (finishBtn) {
+                    safeSetAttr(finishBtn, 'role', 'button');
+                    safeSetAttr(finishBtn, 'tabindex', '0');
+                    safeSetAttr(finishBtn, 'aria-label', 'Finish Setup');
+                }
+                
+                 // Success Icon
+                const icon = el.querySelector('svg[name="check"]');
+                if (icon) {
+                    safeSetAttr(icon, 'role', 'img');
+                    safeSetAttr(icon, 'aria-label', 'Success');
+                }
+            }
+        },
+
         // -- [SECTION A] : Landmarks & Page Structure ---
         // [DESCRIPTION] Defines major regions (Main, Banner, Sidebar) for quick navigation.
         {
