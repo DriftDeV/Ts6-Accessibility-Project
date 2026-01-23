@@ -201,6 +201,13 @@
                         const target = node.matches('.tsv-flex-column.tsv-modal-container') ? node : node.querySelector('.tsv-flex-column.tsv-modal-container');
                         focusElement(target, "Screen Share Settings");
                     }
+
+                    // 5. Initial Splash Screen
+                    if (node.matches('.ts-first-launch-splash') || node.querySelector('.ts-first-launch-splash')) {
+                        const splash = node.matches('.ts-first-launch-splash') ? node : node.querySelector('.ts-first-launch-splash');
+                        const button = splash.querySelector('.ts-first-launch-splash-button .tsv-button');
+                        if (button) focusElement(button, "Get Started Button");
+                    }
                 });
             } 
             // Case 2: Visibility Changes (Attributes)
@@ -227,6 +234,15 @@
                     const isVisible = target.style.visibility !== 'hidden' && target.style.display !== 'none';
                     if (isVisible) {
                         focusElement(target, "Screen Share Settings");
+                    }
+                }
+
+                // Initial Splash Screen Visibility Toggle
+                if (target.matches('.ts-first-launch-splash')) {
+                    const isVisible = target.style.visibility !== 'hidden' && target.style.display !== 'none';
+                    if (isVisible) {
+                        const button = target.querySelector('.ts-first-launch-splash-button .tsv-button');
+                        if (button) focusElement(button, "Get Started Button");
                     }
                 }
             }

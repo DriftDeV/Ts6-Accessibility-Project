@@ -26,20 +26,29 @@
 
     window.tsA11yRules = [
 
-        // TS SPLASH ICON AND BUTTO Initial Screen
+        // TS SPLASH ICON AND BUTTON Initial Screen
         {
-            name: "Splash Icon and Button",
-            selector: ".ts-first-launch-splash-icons, .ts-first-launch-splash-button",
+            name: "Splash Screen",
+            selector: ".ts-first-launch-splash", // Target the container
             match: () => true,
             apply: (el) => {
-                if (el.classList.contains('ts-first-launch-splash-icons')) {
-                    safeSetAttr(el, 'role', 'img');
-                    safeSetAttr(el, 'tabindex', '0');
-                    safeSetAttr(el, 'aria-label', 'TeamSpeak Logo');
-                } else if (el.classList.contains('ts-first-launch-splash-button')) {
-                    safeSetAttr(el, 'role', 'button');
-                    safeSetAttr(el, 'tabindex', '0');
-                    safeSetAttr(el, 'aria-label', 'Get Started');
+                const icon = el.querySelector('.ts-first-launch-splash-icons');
+                if (icon) {
+                    safeSetAttr(icon, 'role', 'img');
+                    safeSetAttr(icon, 'tabindex', '0');
+                    safeSetAttr(icon, 'aria-label', 'TeamSpeak Logo');
+                }
+
+                // The button is nested, so we target the actual button element
+                const button = el.querySelector('.ts-first-launch-splash-button .tsv-button');
+                if (button) {
+                    safeSetAttr(button, 'role', 'button');
+                    safeSetAttr(button, 'tabindex', '0');
+                    
+                    // Try to get label from content, otherwise use fallback
+                    const buttonText = button.querySelector('.tsv-button-content');
+                    const label = buttonText ? buttonText.textContent.trim() : 'Get Started';
+                    safeSetAttr(button, 'aria-label', label);
                 }
             }
         },
