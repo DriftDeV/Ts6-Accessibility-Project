@@ -122,7 +122,7 @@
                 safeSetAttr(el, 'role', 'region');
                 safeSetAttr(el, 'aria-label', 'Sign In');
                 safeSetAttr(el, 'tabindex', '0');
-
+                /*
                 let login_input_box = el.querySelector('.ts-first-launch-login-myts-input');
                 if (login_input_box) {
                     let text_fields = login_input_box.querySelectorAll('.ts-text-input-box');
@@ -130,7 +130,7 @@
                         safeSetAttr(field, 'role', 'textbox');
                         safeSetAttr(field, 'tabindex', '0');
                     });
-                }
+                } */
                 let buttonset = el.querySelector('.ts-first-launch-login-myts-buttonset');
                 if (buttonset) {
                     let buttons = buttonset.querySelectorAll('.tsv-button');
@@ -141,6 +141,232 @@
                         const text = content ? content.textContent.trim() : 'Button';
                         safeSetAttr(button, 'aria-label', text);
                     });
+                }
+            }
+        },
+
+        // Create Account Accessibility
+        {
+            name: "Create Account",
+            selector: ".ts-first-launch-create-myts-container",
+            match: () => true,
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'region');
+                safeSetAttr(el, 'aria-label', 'Create Account');
+                safeSetAttr(el, 'tabindex', '0');
+
+                // Special handling for "Waiting for Email" state
+                const pendingSection = el.querySelector('.ts-first-launch-create-myts-pending');
+                if (pendingSection) {
+                    const statusHeading = pendingSection.querySelector('.ts-first-launch-subtitle');
+                    if (statusHeading) {
+                        safeSetAttr(statusHeading, 'role', 'heading');
+                        safeSetAttr(statusHeading, 'aria-level', '2');
+                        safeSetAttr(statusHeading, 'tabindex', '-1');
+                    }
+                }
+
+                // 1. Heading
+                const heading = el.querySelector('.ts-first-launch-title');
+                if (heading) {
+                    safeSetAttr(heading, 'role', 'heading');
+                    safeSetAttr(heading, 'aria-level', '1');
+                    safeSetAttr(heading, 'tabindex', '0');
+                    // Ensure the step info is part of the label
+                    const label = heading.innerText.replace(/\n/g, ' ').trim();
+                    safeSetAttr(heading, 'aria-label', label);
+                }
+
+                // 2. Create Account Button
+                const createBtn = el.querySelector('.ts-first-launch-create-myts-buttonset .tsv-button');
+                if (createBtn) {
+                    safeSetAttr(createBtn, 'role', 'button');
+                    safeSetAttr(createBtn, 'tabindex', '0');
+                    const content = createBtn.querySelector('.tsv-button-content');
+                    const text = content ? content.textContent.trim() : 'Create Account';
+                    safeSetAttr(createBtn, 'aria-label', text);
+                    
+                    if (createBtn.classList.contains('disabled')) {
+                        safeSetAttr(createBtn, 'aria-disabled', 'true');
+                    } else {
+                        safeRemoveAttr(createBtn, 'aria-disabled');
+                    }
+                }
+
+                // 3. Back Button
+                const backBtn = el.querySelector('.ts-first-launch-back');
+                if (backBtn) {
+                    safeSetAttr(backBtn, 'role', 'button');
+                    safeSetAttr(backBtn, 'tabindex', '0');
+                    safeSetAttr(backBtn, 'aria-label', 'Go Back');
+                }
+            }
+        },
+
+        // Account Created Screen
+        {
+            name: "Account Created",
+            selector: ".ts-first-launch-create-myts-final",
+            match: () => true,
+            apply: (el) => {
+                // 1. Heading
+                const heading = el.querySelector('.ts-first-launch-subtitle');
+                if (heading) {
+                    safeSetAttr(heading, 'role', 'heading');
+                    safeSetAttr(heading, 'aria-level', '1');
+                    safeSetAttr(heading, 'tabindex', '0');
+                }
+
+                // 2. Success Icon
+                const icon = el.querySelector('svg[name="check"]');
+                if (icon) {
+                    safeSetAttr(icon, 'role', 'img');
+                    safeSetAttr(icon, 'aria-label', 'Success');
+                }
+
+                // 3. Continue Button
+                const continueBtn = el.querySelector('.ts-first-launch-create-myts-buttonset .tsv-button');
+                if (continueBtn) {
+                    safeSetAttr(continueBtn, 'role', 'button');
+                    safeSetAttr(continueBtn, 'tabindex', '0');
+                    const content = continueBtn.querySelector('.tsv-button-content');
+                    const text = content ? content.textContent.trim() : 'Continue';
+                    safeSetAttr(continueBtn, 'aria-label', text);
+                }
+            }
+        },
+
+        // Account Recovery Key
+        {
+            name: "Account Recovery Key",
+            selector: ".ts-first-launch-backup-key-container",
+            match: () => true,
+            apply: (el) => {
+                // 1. Heading
+                const heading = el.querySelector('.ts-first-launch-title');
+                if (heading) {
+                    safeSetAttr(heading, 'role', 'heading');
+                    safeSetAttr(heading, 'aria-level', '1');
+                    safeSetAttr(heading, 'tabindex', '0');
+                }
+
+                // 2. Recovery Key & Copy Button
+                const keyContainer = el.querySelector('.ts-first-launch-backup-key-actual');
+                if (keyContainer) {
+                    // Make key readable
+                    const keyTextEl = keyContainer.querySelector('p');
+                    const key = keyTextEl ? keyTextEl.textContent.trim() : "";
+                    
+                    safeSetAttr(keyContainer, 'role', 'group');
+                    safeSetAttr(keyContainer, 'aria-label', 'Recovery Key');
+                    
+                    if (keyTextEl) {
+                        safeSetAttr(keyTextEl, 'tabindex', '0');
+                        safeSetAttr(keyTextEl, 'aria-label', 'Recovery Key: ' + key);
+                        // Ensure it's visible to screen readers even if blurred visually
+                        keyTextEl.style.filter = 'none'; 
+                        keyTextEl.style.opacity = '1';
+                    }
+
+                    // Create Copy Button
+                    if (!keyContainer.querySelector('.ts-a11y-copy-btn')) {
+                        const copyBtn = document.createElement('div');
+                        copyBtn.className = 'tsv-button tsv-button-tinted ts-a11y-copy-btn';
+                        copyBtn.style.marginTop = '10px';
+                        copyBtn.style.cursor = 'pointer';
+                        copyBtn.innerHTML = '<div class="tsv-button-content tsv-flex tsv-flex-snd-center">Copy Key to Clipboard</div>';
+                        
+                        safeSetAttr(copyBtn, 'role', 'button');
+                        safeSetAttr(copyBtn, 'tabindex', '0');
+                        safeSetAttr(copyBtn, 'aria-label', 'Copy recovery key to clipboard');
+
+                        copyBtn.onclick = () => {
+                            if (key) {
+                                navigator.clipboard.writeText(key).then(() => {
+                                    const content = copyBtn.querySelector('.tsv-button-content');
+                                    if(content) content.textContent = "Copied!";
+                                    setTimeout(() => {
+                                         if(content) content.textContent = "Copy Key to Clipboard";
+                                    }, 2000);
+                                });
+                            }
+                        };
+                        
+                        copyBtn.onkeydown = (e) => {
+                             if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                copyBtn.click();
+                            }
+                        };
+
+                        // Insert after the key display
+                        keyContainer.parentElement.insertBefore(copyBtn, keyContainer.nextSibling);
+                    }
+                }
+
+                // 3. Explanation
+                const explain = el.querySelector('.ts-first-launch-backup-key-explain');
+                if (explain) {
+                     safeSetAttr(explain, 'tabindex', '0');
+                     safeSetAttr(explain, 'role', 'article');
+                }
+
+                // 4. Checkbox
+                const checkboxContainer = el.querySelector('.ts-checkbox');
+                if (checkboxContainer) {
+                    const input = checkboxContainer.querySelector('input');
+                    const label = checkboxContainer.querySelector('label');
+                    const labelText = label ? label.textContent.trim() : "I have saved my recovery key";
+
+                    safeSetAttr(checkboxContainer, 'role', 'checkbox');
+                    safeSetAttr(checkboxContainer, 'tabindex', '0');
+                    safeSetAttr(checkboxContainer, 'aria-label', labelText);
+                    
+                    // Sync aria-checked state
+                    const updateState = () => {
+                         const isChecked = input && input.checked;
+                         safeSetAttr(checkboxContainer, 'aria-checked', isChecked ? 'true' : 'false');
+                    };
+                    updateState();
+                    
+                    checkboxContainer.onclick = (e) => {
+                        // If click didn't come from input, toggle input
+                        if (e.target !== input) {
+                            input.click();
+                        }
+                        updateState();
+                    };
+                    
+                    checkboxContainer.onkeydown = (e) => {
+                        if (e.key === ' ' || e.key === 'Enter') {
+                            e.preventDefault();
+                            input.click();
+                            updateState();
+                        }
+                    };
+                    // Listen for native changes too
+                    if(input) input.addEventListener('change', updateState);
+                }
+
+                // 5. Continue Button
+                const continueBtn = el.querySelector('.ts-first-launch-backup-key-buttons .tsv-button');
+                if (continueBtn) {
+                    safeSetAttr(continueBtn, 'role', 'button');
+                    safeSetAttr(continueBtn, 'tabindex', '0');
+                    safeSetAttr(continueBtn, 'aria-label', 'Continue');
+                     if (continueBtn.classList.contains('disabled')) {
+                        safeSetAttr(continueBtn, 'aria-disabled', 'true');
+                    } else {
+                        safeRemoveAttr(continueBtn, 'aria-disabled');
+                    }
+                }
+                
+                // 6. Back Button
+                 const backBtn = el.querySelector('.ts-first-launch-back');
+                if (backBtn) {
+                    safeSetAttr(backBtn, 'role', 'button');
+                    safeSetAttr(backBtn, 'tabindex', '0');
+                    safeSetAttr(backBtn, 'aria-label', 'Go Back');
                 }
             }
         },

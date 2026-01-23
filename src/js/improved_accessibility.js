@@ -208,6 +208,27 @@
                         const button = splash.querySelector('.ts-first-launch-splash-button .tsv-button');
                         if (button) focusElement(button, "Get Started Button");
                     }
+
+                    // 6. Create Account - Waiting for Email
+                    if (node.matches('.ts-first-launch-create-myts-pending') || node.querySelector('.ts-first-launch-create-myts-pending')) {
+                        const pending = node.matches('.ts-first-launch-create-myts-pending') ? node : node.querySelector('.ts-first-launch-create-myts-pending');
+                        const heading = pending.querySelector('.ts-first-launch-subtitle');
+                        if (heading) focusElement(heading, "Waiting for Email Confirmation");
+                    }
+
+                    // 7. Account Created Screen
+                    if (node.matches('.ts-first-launch-create-myts-final') || node.querySelector('.ts-first-launch-create-myts-final')) {
+                        const final = node.matches('.ts-first-launch-create-myts-final') ? node : node.querySelector('.ts-first-launch-create-myts-final');
+                        const heading = final.querySelector('.ts-first-launch-subtitle');
+                        if (heading) focusElement(heading, "Account Created!");
+                    }
+
+                    // 8. Account Recovery Key
+                    if (node.matches('.ts-first-launch-backup-key-container') || node.querySelector('.ts-first-launch-backup-key-container')) {
+                        const container = node.matches('.ts-first-launch-backup-key-container') ? node : node.querySelector('.ts-first-launch-backup-key-container');
+                        const heading = container.querySelector('.ts-first-launch-title');
+                        if (heading) focusElement(heading, "Account Recovery Key");
+                    }
                 });
             } 
             // Case 2: Visibility Changes (Attributes)
@@ -243,6 +264,33 @@
                     if (isVisible) {
                         const button = target.querySelector('.ts-first-launch-splash-button .tsv-button');
                         if (button) focusElement(button, "Get Started Button");
+                    }
+                }
+
+                // Create Account - Waiting for Email Visibility Toggle
+                if (target.matches('.ts-first-launch-create-myts-pending')) {
+                    const isVisible = target.style.visibility !== 'hidden' && target.style.display !== 'none';
+                    if (isVisible) {
+                        const heading = target.querySelector('.ts-first-launch-subtitle');
+                        if (heading) focusElement(heading, "Waiting for Email Confirmation");
+                    }
+                }
+
+                // Account Created Screen Visibility Toggle
+                if (target.matches('.ts-first-launch-create-myts-final')) {
+                    const isVisible = target.style.visibility !== 'hidden' && target.style.display !== 'none';
+                    if (isVisible) {
+                        const heading = target.querySelector('.ts-first-launch-subtitle');
+                        if (heading) focusElement(heading, "Account Created!");
+                    }
+                }
+
+                // Account Recovery Key Visibility Toggle
+                if (target.matches('.ts-first-launch-backup-key-container')) {
+                    const isVisible = target.style.visibility !== 'hidden' && target.style.display !== 'none';
+                    if (isVisible) {
+                         const heading = target.querySelector('.ts-first-launch-title');
+                        if (heading) focusElement(heading, "Account Recovery Key");
                     }
                 }
             }
