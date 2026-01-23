@@ -201,6 +201,48 @@
                         const target = node.matches('.tsv-flex-column.tsv-modal-container') ? node : node.querySelector('.tsv-flex-column.tsv-modal-container');
                         focusElement(target, "Screen Share Settings");
                     }
+
+                    // 5. Initial Splash Screen
+                    if (node.matches('.ts-first-launch-splash') || node.querySelector('.ts-first-launch-splash')) {
+                        const splash = node.matches('.ts-first-launch-splash') ? node : node.querySelector('.ts-first-launch-splash');
+                        const button = splash.querySelector('.ts-first-launch-splash-button .tsv-button');
+                        if (button) focusElement(button, "Get Started Button");
+                    }
+
+                    // 6. Create Account - Waiting for Email
+                    if (node.matches('.ts-first-launch-create-myts-pending') || node.querySelector('.ts-first-launch-create-myts-pending')) {
+                        const pending = node.matches('.ts-first-launch-create-myts-pending') ? node : node.querySelector('.ts-first-launch-create-myts-pending');
+                        const heading = pending.querySelector('.ts-first-launch-subtitle');
+                        if (heading) focusElement(heading, "Waiting for Email Confirmation");
+                    }
+
+                    // 7. Account Created Screen
+                    if (node.matches('.ts-first-launch-create-myts-final') || node.querySelector('.ts-first-launch-create-myts-final')) {
+                        const final = node.matches('.ts-first-launch-create-myts-final') ? node : node.querySelector('.ts-first-launch-create-myts-final');
+                        const heading = final.querySelector('.ts-first-launch-subtitle');
+                        if (heading) focusElement(heading, "Account Created!");
+                    }
+
+                    // 8. Account Recovery Key
+                    if (node.matches('.ts-first-launch-backup-key-container') || node.querySelector('.ts-first-launch-backup-key-container')) {
+                        const container = node.matches('.ts-first-launch-backup-key-container') ? node : node.querySelector('.ts-first-launch-backup-key-container');
+                        const heading = container.querySelector('.ts-first-launch-title');
+                        if (heading) focusElement(heading, "Account Recovery Key");
+                    }
+
+                    // 9. Pick a Theme
+                    if (node.matches('.ts-first-launch-pick-theme-container') || node.querySelector('.ts-first-launch-pick-theme-container')) {
+                        const container = node.matches('.ts-first-launch-pick-theme-container') ? node : node.querySelector('.ts-first-launch-pick-theme-container');
+                        const heading = container.querySelector('.ts-first-launch-title');
+                        if (heading) focusElement(heading, "Pick a Theme");
+                    }
+
+                    // 10. Setup Finished
+                    if (node.matches('.ts-first-launch-finish') || node.querySelector('.ts-first-launch-finish')) {
+                        const container = node.matches('.ts-first-launch-finish') ? node : node.querySelector('.ts-first-launch-finish');
+                        const heading = container.querySelector('.ts-first-launch-subtitle');
+                        if (heading) focusElement(heading, "Setup Finished");
+                    }
                 });
             } 
             // Case 2: Visibility Changes (Attributes)
@@ -227,6 +269,60 @@
                     const isVisible = target.style.visibility !== 'hidden' && target.style.display !== 'none';
                     if (isVisible) {
                         focusElement(target, "Screen Share Settings");
+                    }
+                }
+
+                // Initial Splash Screen Visibility Toggle
+                if (target.matches('.ts-first-launch-splash')) {
+                    const isVisible = target.style.visibility !== 'hidden' && target.style.display !== 'none';
+                    if (isVisible) {
+                        const button = target.querySelector('.ts-first-launch-splash-button .tsv-button');
+                        if (button) focusElement(button, "Get Started Button");
+                    }
+                }
+
+                // Create Account - Waiting for Email Visibility Toggle
+                if (target.matches('.ts-first-launch-create-myts-pending')) {
+                    const isVisible = target.style.visibility !== 'hidden' && target.style.display !== 'none';
+                    if (isVisible) {
+                        const heading = target.querySelector('.ts-first-launch-subtitle');
+                        if (heading) focusElement(heading, "Waiting for Email Confirmation");
+                    }
+                }
+
+                // Account Created Screen Visibility Toggle
+                if (target.matches('.ts-first-launch-create-myts-final')) {
+                    const isVisible = target.style.visibility !== 'hidden' && target.style.display !== 'none';
+                    if (isVisible) {
+                        const heading = target.querySelector('.ts-first-launch-subtitle');
+                        if (heading) focusElement(heading, "Account Created!");
+                    }
+                }
+
+                // Account Recovery Key Visibility Toggle
+                if (target.matches('.ts-first-launch-backup-key-container')) {
+                    const isVisible = target.style.visibility !== 'hidden' && target.style.display !== 'none';
+                    if (isVisible) {
+                         const heading = target.querySelector('.ts-first-launch-title');
+                        if (heading) focusElement(heading, "Account Recovery Key");
+                    }
+                }
+
+                // Pick a Theme Visibility Toggle
+                if (target.matches('.ts-first-launch-pick-theme-container')) {
+                    const isVisible = target.style.visibility !== 'hidden' && target.style.display !== 'none';
+                    if (isVisible) {
+                        const heading = target.querySelector('.ts-first-launch-title');
+                        if (heading) focusElement(heading, "Pick a Theme");
+                    }
+                }
+
+                // Setup Finished Visibility Toggle
+                if (target.matches('.ts-first-launch-finish')) {
+                    const isVisible = target.style.visibility !== 'hidden' && target.style.display !== 'none';
+                    if (isVisible) {
+                        const heading = target.querySelector('.ts-first-launch-subtitle');
+                        if (heading) focusElement(heading, "Setup Finished");
                     }
                 }
             }
