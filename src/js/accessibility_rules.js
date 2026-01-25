@@ -681,6 +681,23 @@
                 if (el.classList.contains('is-full')) extra += ", Full";
 
                 safeSetAttr(el, 'aria-label', `${name}${extra}`);
+
+                // Add single-interaction join support (Enter/Space -> Double Click)
+                if (!el.hasAttribute('data-a11y-join-handler')) {
+                    el.setAttribute('data-a11y-join-handler', 'true');
+                    el.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            // Dispatch a double click event to join the channel
+                            const dblClickEvent = new MouseEvent('dblclick', {
+                                bubbles: true,
+                                cancelable: true,
+                                view: window
+                            });
+                            el.dispatchEvent(dblClickEvent);
+                        }
+                    });
+                }
             }
         },
         {
@@ -1044,27 +1061,94 @@
                             safeSetAttr(row, 'tabindex', '0');
                             // FIX: Label selector logic was too specific/incorrect
                             const labelEl = row.querySelector('.tsv-label-inline') || row.querySelector('label');
+                            let rowLabel = "Setting";
                             if (labelEl) {
-                                safeSetAttr(row, 'aria-label', cleanLabel(labelEl.textContent));
+                                rowLabel = cleanLabel(labelEl.textContent);
+                                safeSetAttr(row, 'aria-label', rowLabel);
+                            }
+
+                            // Tooltips (Question Marks)
+                            const qMark = row.querySelector('.tsv-question-mark');
+                            if (qMark) {
+                                safeSetAttr(qMark, 'aria-hidden', 'true'); // Hide visual cue, rely on label or description
+                                // Ideally we'd link this, but for now just hiding the symbol from SR is cleaner than "question mark"
                             }
 
                             // Handling controls
-                            let flex1 = row.querySelector('.tsv-flex-1');
-                            if (flex1) {
-                                let controls = flex1.querySelector('.tsv-segmented-control');
-                                if (controls) {
-                                    safeSetAttr(controls, 'role', 'group');
-                                    safeSetAttr(controls, 'tabindex', '0');
-                                    if (labelEl) safeSetAttr(controls, 'aria-label', cleanLabel(labelEl.textContent));
+                            
+                            // 1. Segmented Controls
+                            let controls = row.querySelector('.tsv-segmented-control');
+                            if (controls) {
+                                safeSetAttr(controls, 'role', 'group');
+                                safeSetAttr(controls, 'tabindex', '0');
+                                if (labelEl) safeSetAttr(controls, 'aria-label', rowLabel);
 
-                                    let buttons = controls.querySelectorAll('.tsv-segmented-button');
-                                    buttons.forEach(button => {
-                                        safeSetAttr(button, 'role', 'button');
-                                        safeSetAttr(button, 'tabindex', '0');
-                                        const btnLabel = button.textContent;
-                                        safeSetAttr(button, 'aria-label', cleanLabel(btnLabel));
-                                        safeSetAttr(button, 'aria-pressed', button.classList.contains('active') ? 'true' : 'false');
-                                    })
+                                let buttons = controls.querySelectorAll('.tsv-segmented-button');
+                                buttons.forEach(button => {
+                                    safeSetAttr(button, 'role', 'button');
+                                    safeSetAttr(button, 'tabindex', '0');
+                                    const btnLabel = button.textContent;
+                                    safeSetAttr(button, 'aria-label', cleanLabel(btnLabel));
+                                    safeSetAttr(button, 'aria-pressed', button.classList.contains('active') ? 'true' : 'false');
+                                })
+                            }
+
+                            // 2. Number Pickers
+                            let numPicker = row.querySelector('.tsv-number-picker');
+                            if (numPicker) {
+                                safeSetAttr(numPicker, 'role', 'spinbutton'); // Or group if we want to expose buttons
+                                // Since it has buttons, group might be better, but let's try to make the input the primary interaction
+                                let input = numPicker.querySelector('input');
+                                if (input) {
+                                    safeSetAttr(input, 'aria-label', rowLabel);
+                                }
+                                
+                                // Buttons
+                                let buttons = numPicker.querySelectorAll('.tsv-number-picker-button');
+                                if (buttons.length >= 2) {
+                                    safeSetAttr(buttons[0], 'role', 'button');
+                                    safeSetAttr(buttons[0], 'aria-label', 'Decrease ' + rowLabel);
+                                    safeSetAttr(buttons[0], 'tabindex', '0');
+
+                                    safeSetAttr(buttons[1], 'role', 'button');
+                                    safeSetAttr(buttons[1], 'aria-label', 'Increase ' + rowLabel);
+                                    safeSetAttr(buttons[1], 'tabindex', '0');
+                                }
+                            }
+
+                            // 3. Toggles (Checkboxes)
+                            let toggleWrapper = row.querySelector('.ts-toggle-wrapper');
+                            if (toggleWrapper) {
+                                let toggle = toggleWrapper.querySelector('.ts-toggle');
+                                if (toggle) {
+                                    safeSetAttr(toggle, 'role', 'switch');
+                                    safeSetAttr(toggle, 'tabindex', '0');
+                                    safeSetAttr(toggle, 'aria-label', rowLabel);
+                                    
+                                    let inner = toggle.querySelector('.ts-toggle-inner');
+                                    let input = toggleWrapper.querySelector('input');
+                                    
+                                    let isChecked = (inner && inner.classList.contains('checked')) || (input && input.checked);
+                                    safeSetAttr(toggle, 'aria-checked', isChecked ? 'true' : 'false');
+
+                                    // Add click handler for keyboard interaction if not present
+                                    if (!toggle.hasAttribute('data-a11y-click')) {
+                                        toggle.setAttribute('data-a11y-click', 'true');
+                                        toggle.addEventListener('keydown', (e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                // Try clicking the input if available, or the toggle itself
+                                                if (input) input.click();
+                                                else toggle.click();
+                                                
+                                                // Update state after short delay
+                                                setTimeout(() => {
+                                                    let newChecked = (inner && inner.classList.contains('checked')) || (input && input.checked);
+                                                    safeSetAttr(toggle, 'aria-checked', newChecked ? 'true' : 'false');
+                                                }, 100);
+                                            }
+                                        });
+                                    }
                                 }
                             }
                         })

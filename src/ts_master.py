@@ -130,49 +130,49 @@ def inject_logic(ws_url, script_content):
     """
     Connects to the WebSocket and injects the script.
     """
-    ws = websocket.create_connection(ws_url)
-    
-    # 1. Enable Runtime
-    ws.send(json.dumps({"id": 1, "method": "Runtime.enable"}))
-    ws.recv() # Discard response
-    
-    # 2. Evaluate script (Inject)
-    msg = {
-        "id": 2,
-        "method": "Runtime.evaluate",
-        "params": {
-            "expression": script_content,
-            "userGesture": True,
-            "awaitPromise": False
-        }
-    }
-    ws.send(json.dumps(msg))
-    result = ws.recv()
-    print(f"[DEBUG] Injection result: {result}")
-    
-    # 3. Enable Page events to auto-inject on reload/navigation
-    ws.send(json.dumps({"id": 3, "method": "Page.enable"}))
-    ws.recv()
-
-    # 4. Enable Console events
-    ws.send(json.dumps({"id": 4, "method": "Console.enable"}))
-    ws.recv()
-    
-    add_script_msg = {
-        "id": 5,
-        "method": "Page.addScriptToEvaluateOnNewDocument",
-        "params": {
-            "source": script_content
-        }
-    }
-    ws.send(json.dumps(add_script_msg))
-    result = ws.recv()
-    
-    print("[+] Script injected successfully!")
-    print("[+] Monitoring... Press Ctrl+C to stop.")
-    
-    # Keep connection alive to monitor log events or keep injection active
     try:
+        ws = websocket.create_connection(ws_url)
+        
+        # 1. Enable Runtime
+        ws.send(json.dumps({"id": 1, "method": "Runtime.enable"}))
+        ws.recv() # Discard response
+        
+        # 2. Evaluate script (Inject)
+        msg = {
+            "id": 2,
+            "method": "Runtime.evaluate",
+            "params": {
+                "expression": script_content,
+                "userGesture": True,
+                "awaitPromise": False
+            }
+        }
+        ws.send(json.dumps(msg))
+        result = ws.recv()
+        print(f"[DEBUG] Injection result: {result}")
+        
+        # 3. Enable Page events to auto-inject on reload/navigation
+        ws.send(json.dumps({"id": 3, "method": "Page.enable"}))
+        ws.recv()
+
+        # 4. Enable Console events
+        ws.send(json.dumps({"id": 4, "method": "Console.enable"}))
+        ws.recv()
+        
+        add_script_msg = {
+            "id": 5,
+            "method": "Page.addScriptToEvaluateOnNewDocument",
+            "params": {
+                "source": script_content
+            }
+        }
+        ws.send(json.dumps(add_script_msg))
+        result = ws.recv()
+        
+        print("[+] Script injected successfully!")
+        print("[+] Monitoring... Press Ctrl+C to stop.")
+        
+        # Keep connection alive to monitor log events or keep injection active
         while True:
             result = ws.recv()
             data = json.loads(result)
@@ -183,10 +183,16 @@ def inject_logic(ws_url, script_content):
                 params = data["params"]
                 args = [str(arg.get("value", arg.get("description", "?"))) for arg in params.get("args", [])]
                 print(f"[Console API] {params.get('type', 'log')}: {' '.join(args)}")
+
+    except websocket.WebSocketConnectionClosedException:
+        print("\n[*] Connection to TeamSpeak lost (Application closed or reloaded).")
     except KeyboardInterrupt:
         print("\n[*] Disconnecting...")
+    except Exception as e:
+        print(f"\n[!] Unexpected error: {e}")
     finally:
-        ws.close()
+        if 'ws' in locals() and ws:
+            ws.close()
 
 def main():
     # 1. Launch TeamSpeak
