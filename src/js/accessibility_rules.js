@@ -698,6 +698,41 @@
                         }
                     });
                 }
+
+                // Add an invisible "Join" button for screen readers
+                let joinBtn = el.querySelector('.ts-a11y-join-btn');
+                if (!joinBtn) {
+                    joinBtn = document.createElement('button');
+                    joinBtn.className = 'ts-a11y-join-btn';
+                    // Make it invisible but accessible to screen readers
+                    joinBtn.style.position = 'absolute';
+                    joinBtn.style.width = '1px';
+                    joinBtn.style.height = '1px';
+                    joinBtn.style.padding = '0';
+                    joinBtn.style.margin = '-1px';
+                    joinBtn.style.overflow = 'hidden';
+                    joinBtn.style.clip = 'rect(0, 0, 0, 0)';
+                    joinBtn.style.whiteSpace = 'nowrap';
+                    joinBtn.style.border = '0';
+                    joinBtn.setAttribute('tabindex', '-1'); 
+
+                    joinBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        const dblClickEvent = new MouseEvent('dblclick', {
+                            bubbles: true,
+                            cancelable: true,
+                            view: window
+                        });
+                        el.dispatchEvent(dblClickEvent);
+                    };
+
+                    el.appendChild(joinBtn);
+                }
+                
+                const joinLabel = 'Join ' + name;
+                if (joinBtn.textContent !== joinLabel) {
+                    joinBtn.textContent = joinLabel;
+                }
             }
         },
         {
