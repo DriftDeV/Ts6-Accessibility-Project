@@ -1174,7 +1174,6 @@
             match: () => true,
             apply: (el) => safeRemoveAttr(el, 'tabindex')
         },
-        /*
         {
             name: "Generic Button Fallback",
             selector: ".tsv-action, .tsv-button",
@@ -1188,6 +1187,6 @@
                     safeSetAttr(el, 'aria-label', cleanLabel(label));
                 }
             }
-        }*/
+        }
     ];
 })();
