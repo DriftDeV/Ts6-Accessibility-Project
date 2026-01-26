@@ -6,6 +6,8 @@
  */
 
 (function () {
+    console.log('[A11y Rules] Loading rules definition...');
+
     // -- Utilities ---
 
     function cleanLabel(text) {
@@ -18,17 +20,11 @@
         if (el.getAttribute(attr) !== val) el.setAttribute(attr, val);
     }
 
-    function safeRemoveAttr(el, attr) {
-        if (!el) return;
-        if (el.hasAttribute(attr)) el.removeAttribute(attr);
-    }
-
     // -- Rules Configuration ---
 
     window.tsA11yRules = [
 
         // -- [SECTION A] : Landmarks & Page Structure ---
-        // Main Window Frame
         {
             name: "Main Window",
             selector: ".tsv-window",
@@ -38,19 +34,17 @@
                 safeSetAttr(el, 'aria-label', 'TeamSpeak Client');
             }
         },
-        // Sidebar (Server List & Contacts)
         {
-            name: "Sidebar (Navigation)",
+            name: "Sidebar",
             selector: ".tsv-sidebar",
             match: () => true,
             apply: (el) => {
                 safeSetAttr(el, 'role', 'navigation');
-                safeSetAttr(el, 'aria-label', 'Server List and Contacts');
+                safeSetAttr(el, 'aria-label', 'Sidebar');
             }
         },
-        // Server Tree View (The Main Content when connected)
         {
-            name: "Server Tree View",
+            name: "Server View",
             selector: ".tsv-view.tsv-activity-main",
             match: () => true,
             apply: (el) => {
@@ -58,59 +52,44 @@
                 safeSetAttr(el, 'aria-label', 'Server Browser');
             }
         },
-        // Chat Area (Right Side)
-        {
-            name: "Chat View",
-            selector: ".ts-chat-widget, .ts-chat-container",
-            match: () => true,
-            apply: (el) => {
-                safeSetAttr(el, 'role', 'complementary');
-                safeSetAttr(el, 'aria-label', 'Text Chat');
-            }
-        },
-        // Top Toolbar
         {
             name: "Top Toolbar",
             selector: ".tsv-header",
-            match: (el) => !el.closest('.tsv-sidebar'), // Only main header, not sidebar header
+            match: (el) => !el.closest('.tsv-sidebar'),
             apply: (el) => {
                 safeSetAttr(el, 'role', 'banner');
-                safeSetAttr(el, 'aria-label', 'Server Toolbar');
+                safeSetAttr(el, 'aria-label', 'Toolbar');
             }
         },
 
-        // -- [SECTION B] : Server Tree & Navigation ---
-        // Server Tree Container
+        // -- [SECTION B] : Server Tree & Content ---
         {
-            name: "Server Tree Container",
+            name: "Server Tree",
             selector: ".ts-server-tree-wrapper",
             match: () => true,
             apply: (el) => {
                 safeSetAttr(el, 'role', 'tree');
                 safeSetAttr(el, 'aria-label', 'Channels and Clients');
-                // Ensure it's focusable for "magnetic focus"
-                safeSetAttr(el, 'tabindex', '0'); 
+                safeSetAttr(el, 'tabindex', '0');
             }
         },
-        // Individual Channels (Leafs)
         {
             name: "Channel Item",
             selector: ".ts-server-tree-item-leaf.channel",
             match: () => true,
             apply: (el) => {
                 safeSetAttr(el, 'role', 'treeitem');
+                // tabindex -1 allows programmatic focus but removes from tab order
                 safeSetAttr(el, 'tabindex', '-1'); 
                 
                 const textEl = el.querySelector('.ts-server-tree-item-text');
                 const name = textEl ? textEl.textContent.trim() : "Channel";
                 
-                // Status checks
                 let status = [];
                 if (el.classList.contains('has-password')) status.push("Password Protected");
-                if (el.classList.contains('is-full')) status.push("Channel Full");
+                if (el.classList.contains('is-full')) status.push("Full");
                 if (el.querySelector('.ts-icon-subscribe')) status.push("Subscribed");
                 
-                // Active/Current Channel check
                 const isCurrent = el.classList.contains('tsv-active') || el.classList.contains('current-channel');
                 if (isCurrent) {
                     safeSetAttr(el, 'aria-current', 'true');
@@ -120,36 +99,21 @@
                 const label = `${name} ${status.length > 0 ? ', ' + status.join(', ') : ''}`;
                 safeSetAttr(el, 'aria-label', label);
                 
-                // Expand/Collapse state
                 if (el.classList.contains('has-children')) {
                     const isExpanded = !el.classList.contains('collapsed');
                     safeSetAttr(el, 'aria-expanded', isExpanded ? 'true' : 'false');
                 }
 
-                // --- Join Button Logic ---
-                // Create a dedicated button for joining without double-clicking
-                let joinBtn = el.querySelector('.ts-a11y-join-btn');
-                if (!joinBtn) {
-                    joinBtn = document.createElement('button');
+                // --- Join Button Logic (Fixed) ---
+                if (!el.querySelector('.ts-a11y-join-btn')) {
+                    const joinBtn = document.createElement('button');
                     joinBtn.className = 'ts-a11y-join-btn';
-                    joinBtn.textContent = 'Join';
+                    joinBtn.textContent = 'Join Channel'; // Clear text for VoiceOver
                     
-                    // Style as screen-reader only but focusable
-                    Object.assign(joinBtn.style, {
-                        position: 'absolute',
-                        width: '1px',
-                        height: '1px',
-                        padding: '0',
-                        margin: '-1px',
-                        overflow: 'hidden',
-                        clip: 'rect(0, 0, 0, 0)',
-                        whiteSpace: 'nowrap',
-                        border: '0',
-                        top: '0',
-                        left: '0' // Place at start of element
-                    });
-
-                    safeSetAttr(joinBtn, 'tabindex', '-1'); // Not in tab sequence, but reachable via VO cursor
+                    // Visually hidden but accessible style
+                    joinBtn.style.cssText = 'position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;';
+                    
+                    safeSetAttr(joinBtn, 'tabindex', '-1');
                     safeSetAttr(joinBtn, 'aria-label', `Join ${name}`);
 
                     joinBtn.onclick = (e) => {
@@ -157,7 +121,7 @@
                         e.stopPropagation();
                         console.log(`[A11y] Join button clicked for ${name}`);
                         
-                        // Dispatch double click to main element
+                        // Dispatch double click
                         const dblClick = new MouseEvent('dblclick', {
                             bubbles: true,
                             cancelable: true,
@@ -166,17 +130,17 @@
                         el.dispatchEvent(dblClick);
                     };
 
-                    // Insert as first child so it's found easily
+                    // Insert as first child to be read first when interacting
                     el.insertBefore(joinBtn, el.firstChild);
                 }
 
-                // Keyboard 'Enter' to Join
+                // Enter key support
                 if (!el.hasAttribute('data-enter-listener')) {
                     el.setAttribute('data-enter-listener', 'true');
                     el.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter') {
                             e.preventDefault();
-                            console.log(`[A11y] Enter pressed on ${name}`);
+                            e.stopPropagation();
                             const dblClick = new MouseEvent('dblclick', {
                                 bubbles: true,
                                 cancelable: true,
@@ -188,7 +152,6 @@
                 }
             }
         },
-        // Clients (Users)
         {
             name: "Client Item",
             selector: ".ts-server-tree-item-leaf.client",
@@ -200,27 +163,20 @@
                 const nickEl = el.querySelector('.ts-client-nick');
                 const nickname = nickEl ? nickEl.textContent.trim() : "Client";
 
-                // Detailed Status
                 let status = "Silent";
                 const iconStack = el.querySelector('.tsv-icon-stack');
                 if (iconStack) {
-                    // Heuristic based on icon classes/names usually found in TS
                     if (el.querySelector('[name*="talking"]')) status = "Talking";
-                    if (el.querySelector('[name*="muted"]')) status = "Muted";
-                    if (el.querySelector('[name*="hardware_input_muted"]')) status = "Mic Muted";
-                    if (el.querySelector('[name*="hardware_output_muted"]')) status = "Sound Muted";
-                    if (el.querySelector('[name*="away"]')) status = "Away";
+                    else if (el.querySelector('[name*="muted"]')) status = "Muted";
+                    else if (el.querySelector('[name*="away"]')) status = "Away";
                 }
 
-                // Badges/Server Groups
                 const badges = el.querySelectorAll('.ts-server-tree-group-icon');
-                const badgeCount = badges.length;
-                const badgeText = badgeCount > 0 ? `, ${badgeCount} badges` : "";
+                const badgeText = badges.length > 0 ? `, ${badges.length} badges` : "";
 
                 safeSetAttr(el, 'aria-label', `${nickname}, ${status}${badgeText}`);
             }
         },
-        // Spacers
         {
             name: "Server Tree Spacer",
             selector: ".ts-server-tree-item-leaf.spacer",
@@ -230,13 +186,13 @@
                 const textEl = el.querySelector('.ts-server-tree-item-text');
                 if (textEl && textEl.textContent.trim()) {
                     safeSetAttr(el, 'aria-label', textEl.textContent.trim());
-                    safeSetAttr(el, 'role', 'heading'); // Upgrade to heading if it has text
+                    safeSetAttr(el, 'role', 'heading');
                     safeSetAttr(el, 'aria-level', '3');
                 }
             }
         },
 
-        // -- [SECTION C] : Chat Interaction ---
+        // -- [SECTION C] : UI Components ---
         {
             name: "Chat Input",
             selector: ".ts-chat-input-container .ts-input-as-text",
@@ -244,18 +200,7 @@
             apply: (el) => {
                 safeSetAttr(el, 'role', 'textbox');
                 safeSetAttr(el, 'aria-multiline', 'true');
-                safeSetAttr(el, 'aria-label', 'Message Channel');
-                safeSetAttr(el, 'tabindex', '0');
-            }
-        },
-        {
-            name: "Chat History",
-            selector: ".ts-chat-history-virtual-list",
-            match: () => true,
-            apply: (el) => {
-                safeSetAttr(el, 'role', 'log');
-                safeSetAttr(el, 'aria-label', 'Chat History');
-                safeSetAttr(el, 'aria-live', 'polite');
+                safeSetAttr(el, 'aria-label', 'Chat Message');
             }
         },
         {
@@ -264,25 +209,16 @@
             match: () => true,
             apply: (el) => {
                 safeSetAttr(el, 'role', 'article');
-                // Construct a reading string
-                const sender = el.querySelector('.ts-chat-message-sender-name')?.textContent || "Unknown";
-                const time = el.querySelector('.ts-timestamp')?.textContent || "";
-                const content = el.querySelector('.ts-chat-message-content')?.textContent || "";
-                
-                safeSetAttr(el, 'aria-label', `${sender} at ${time}: ${content}`);
                 safeSetAttr(el, 'tabindex', '0');
             }
         },
-
-        // -- [SECTION D] : Menus & Popups ---
         {
             name: "Context Menu",
             selector: ".ts-context-menu",
             match: () => true,
             apply: (el) => {
                 safeSetAttr(el, 'role', 'menu');
-                safeSetAttr(el, 'aria-modal', 'true'); // Treat as modal for focus trap
-                
+                safeSetAttr(el, 'aria-modal', 'true');
                 const items = el.querySelectorAll('.tsv-item');
                 items.forEach(item => {
                     safeSetAttr(item, 'role', 'menuitem');
@@ -290,20 +226,6 @@
                 });
             }
         },
-
-        // -- [SECTION E] : Dialogs (First Launch, Settings) ---
-        // Splash / Initial Setup
-        {
-            name: "Splash Screen",
-            selector: ".ts-first-launch-splash",
-            match: () => true,
-            apply: (el) => {
-                safeSetAttr(el, 'role', 'region');
-                safeSetAttr(el, 'aria-label', 'Welcome to TeamSpeak');
-                el.querySelector('button')?.focus(); // Direct focus hint
-            }
-        },
-        // Generic Modal
         {
             name: "Modal Dialog",
             selector: ".tsv-modal-container",
@@ -311,18 +233,30 @@
             apply: (el) => {
                 safeSetAttr(el, 'role', 'dialog');
                 safeSetAttr(el, 'aria-modal', 'true');
-                
                 const title = el.querySelector('.tsv-modal-header-title') || el.querySelector('h1, h2');
                 if (title) safeSetAttr(el, 'aria-label', title.textContent.trim());
             }
         },
 
-        // -- [SECTION F] : Cleanup & Noise Reduction ---
-        // Enhanced Icons: Label known icons, hide decorative ones
+        // -- [SECTION D] : Icons & Cleanup ---
+        // Status Icons (Container based)
+        {
+            name: "Status Icons",
+            selector: ".tsv-icon-stack",
+            match: (el) => !el.closest('.ts-server-tree-item-leaf.client'), // Skip client status as it's handled in client rule
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'img');
+                const svg = el.querySelector('svg');
+                if (svg && svg.getAttribute('name')) {
+                    safeSetAttr(el, 'aria-label', cleanLabel(svg.getAttribute('name')));
+                }
+            }
+        },
+        // Enhanced SVGs (Direct SVG based)
         {
             name: "Enhanced Icons",
             selector: "svg",
-            match: (el) => !el.hasAttribute('aria-label') && !el.hasAttribute('role'),
+            match: (el) => !el.hasAttribute('aria-label') && !el.hasAttribute('role') && !el.getAttribute('aria-hidden'),
             apply: (el) => {
                 const iconMap = {
                     'search': 'Search',
@@ -363,30 +297,16 @@
                     safeSetAttr(el, 'role', 'img');
                     safeSetAttr(el, 'aria-label', iconMap[name]);
                 } else if (el.closest('.tsv-icon-no-animation') || el.classList.contains('tsv-icon-no-animation')) {
-                     // Usually decorative backgrounds or small indicators
                      safeSetAttr(el, 'aria-hidden', 'true');
+                } else if (name && name.length > 2) {
+                    safeSetAttr(el, 'role', 'img');
+                    safeSetAttr(el, 'aria-label', cleanLabel(name));
                 } else {
-                    // Fallback: try to clean up the name if it exists, otherwise hide
-                    if (name && name.length > 2) {
-                        safeSetAttr(el, 'role', 'img');
-                        safeSetAttr(el, 'aria-label', cleanLabel(name));
-                    } else {
-                        safeSetAttr(el, 'aria-hidden', 'true');
-                    }
+                    safeSetAttr(el, 'aria-hidden', 'true');
                 }
-            }
-        },
-        // Fix split buttons / complex containers
-        {
-            name: "List Item Container",
-            selector: ".tsv-item-container",
-            match: (el) => el.parentElement.getAttribute('role') === 'treeitem' || el.parentElement.getAttribute('role') === 'listitem',
-            apply: (el) => {
-                // The container is presentation, the parent is the item
-                safeSetAttr(el, 'role', 'presentation');
             }
         }
     ];
 
-    console.log('[A11y Rules] Loaded ' + window.tsA11yRules.length + ' accessibility rules');
+    console.log('[A11y Rules] Loaded ' + window.tsA11yRules.length + ' rules.');
 })();

@@ -21,11 +21,12 @@
 
     // --- TTS Module ---
     const TTS = {
-        speaking: false,
-        enabled: true, 
-        
         announce: function (text, priority = 'polite') {
-            const liveRegion = document.getElementById('ts-a11y-live-region');
+            let liveRegion = document.getElementById('ts-a11y-live-region');
+            if (!liveRegion) {
+                createLiveRegion();
+                liveRegion = document.getElementById('ts-a11y-live-region');
+            }
             if (liveRegion) {
                 liveRegion.setAttribute('aria-live', priority);
                 liveRegion.textContent = text;
@@ -41,12 +42,17 @@
             liveRegion.className = 'sr-only';
             liveRegion.setAttribute('aria-live', 'polite');
             liveRegion.setAttribute('aria-atomic', 'true');
+            liveRegion.style.cssText = 'position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;';
             document.body.appendChild(liveRegion);
         }
     }
 
     // --- Magnetic Focus Configuration ---
     
+    function isVisible(el) {
+        return el && (el.offsetParent !== null);
+    }
+
     const magneticFocusTargets = [
         // 1. Context Menus (Highest Priority)
         {
@@ -62,16 +68,14 @@
             target: (el) => el.querySelector('input, button, [tabindex="0"]'),
             message: "Dialog Open"
         },
-        // 3. Server Tree (Main View) - CRITICAL for user request
+        // 3. Server Tree (Main View)
         {
             selector: '.tsv-view.tsv-activity-main',
             check: (el) => isVisible(el) && !document.querySelector('.ts-context-menu'),
             target: (el) => {
                 // Try to find the focused/selected channel first
                 let target = el.querySelector('.ts-server-tree-item-leaf.channel.tsv-selected');
-                // Fallback to the first channel/spacer
                 if (!target) target = el.querySelector('.ts-server-tree-item-leaf');
-                // Fallback to the scroller container
                 if (!target) target = el.querySelector('.ts-server-tree-wrapper');
                 return target;
             },
@@ -89,12 +93,11 @@
     // --- Focus Management ---
 
     function handleMagneticFocus(mutations) {
-        // Debounce focus checks to avoid thrashing
         if (window.__ts_focus_timer) clearTimeout(window.__ts_focus_timer);
         
         window.__ts_focus_timer = setTimeout(() => {
-            // If user is already interacting with something important, don't steal focus
             const active = document.activeElement;
+            // Don't steal focus if user is typing or in a menu
             if (active && (
                 active.tagName === 'INPUT' || 
                 active.tagName === 'TEXTAREA' || 
@@ -104,21 +107,19 @@
                 return;
             }
 
-            // Iterate targets by priority
             for (const rule of magneticFocusTargets) {
                 const elements = document.querySelectorAll(rule.selector);
                 for (const el of elements) {
                     if (rule.check(el)) {
                         const target = rule.target(el);
                         if (target) {
-                            // Check if we are already inside the target area
-                            if (el.contains(active)) return;
+                            if (el.contains(active)) return; // Already inside
 
-                            safeSetAttr(target, 'tabindex', '-1'); // Ensure focusable
+                            safeSetAttr(target, 'tabindex', '-1');
                             target.focus();
-                            console.log(`[A11y] Magnetic Focus -> ${rule.message}`);
+                            console.log(`[A11y] Focus -> ${rule.message}`);
                             TTS.announce(rule.message);
-                            return; // Stop after first match
+                            return; 
                         }
                     }
                 }
@@ -126,40 +127,29 @@
         }, 150);
     }
 
-    function isVisible(el) {
-        return el && (el.offsetParent !== null);
-    }
-
-    // --- Vue Router & Page Transitions ---
-
-    function hookRouter(app) {
-        if (!app.$router || app.__a11y_router_hooked) return;
-        app.__a11y_router_hooked = true;
-
-        app.$router.afterEach((to, from) => {
-            // Apply rules immediately on route change
-            setTimeout(() => {
-                applyRules(document);
-                // Trigger magnetic focus check explicitly
-                handleMagneticFocus([]);
-            }, 300);
-        });
-    }
-
     // --- Rule Application ---
 
     function applyRules(root) {
-        if (!window.tsA11yRules) return;
+        if (!window.tsA11yRules || !Array.isArray(window.tsA11yRules)) {
+            console.warn('[A11y] No rules found.');
+            return;
+        }
         
+        let count = 0;
         window.tsA11yRules.forEach(rule => {
             try {
-                root.querySelectorAll(rule.selector).forEach(el => {
-                    if (rule.match(el)) rule.apply(el);
+                const elements = root.querySelectorAll(rule.selector);
+                elements.forEach(el => {
+                    if (rule.match(el)) {
+                        rule.apply(el);
+                        count++;
+                    }
                 });
             } catch (e) {
-                console.error(e);
+                console.error(`[A11y] Error in rule ${rule.name}:`, e);
             }
         });
+        // console.log(`[A11y] Applied rules to ${count} elements.`);
         
         injectStyles();
     }
@@ -180,14 +170,16 @@
     // --- Initialization ---
 
     function init() {
-        console.log('[A11y] Init...');
+        console.log('[A11y] Initializing...');
         createLiveRegion();
         applyRules(document);
 
-        // Watch for DOM changes (Vue renders, Popups)
         const observer = new MutationObserver((mutations) => {
-            applyRules(document); // Re-apply attributes
-            handleMagneticFocus(mutations); // Check focus
+            const hasNodes = mutations.some(m => m.type === 'childList' && m.addedNodes.length > 0);
+            if (hasNodes) {
+                applyRules(document);
+                handleMagneticFocus(mutations);
+            }
         });
 
         observer.observe(document.body, {
@@ -196,15 +188,21 @@
             attributes: true,
             attributeFilter: ['style', 'class', 'hidden']
         });
-
-        // Try to hook router
-        const checkApp = setInterval(() => {
-            const app = document.getElementById('app')?.__vue__;
-            if (app && app.$router) {
-                hookRouter(app);
-                clearInterval(checkApp);
-            }
-        }, 1000);
+        
+        // Router Hook (Vue)
+        setTimeout(() => {
+             const app = document.getElementById('app')?.__vue__;
+             if (app && app.$router && !app.__a11y_hooked) {
+                 app.__a11y_hooked = true;
+                 app.$router.afterEach(() => {
+                     setTimeout(() => {
+                         applyRules(document);
+                         handleMagneticFocus([]);
+                     }, 300);
+                 });
+                 console.log('[A11y] Vue Router hooked.');
+             }
+        }, 2000);
     }
 
     if (document.readyState === 'loading') {
