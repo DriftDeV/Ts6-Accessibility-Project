@@ -18,8 +18,8 @@ except ImportError:
 # Configuration
 DEBUG_PORT = 9222
 INJECT_SCRIPT_PATHS = [
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "js", "accessibility_rules.js"),
-    os.path.join(os.path.dirname(os.path.abspath(__file__)), "js", "improved_accessibility.js")
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "js", "accessibility_rules_optimized.js"),
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "js", "improved_accessibility_optimized.js")
 ]
 
 def get_os_info():

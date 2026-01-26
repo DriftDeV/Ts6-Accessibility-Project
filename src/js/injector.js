@@ -8,8 +8,8 @@ const path = require('path');
 
 const REMOTE_DEBUG_PORT = 9222;
 const RECONNECT_INTERVAL_MS = 3000;
-const RULES_PATH = path.join(__dirname, 'accessibility_rules.js');
-const MAIN_SCRIPT_PATH = path.join(__dirname, 'improved_accessibility.js');
+const RULES_PATH = path.join(__dirname, 'accessibility_rules_optimized.js');
+const MAIN_SCRIPT_PATH = path.join(__dirname, 'improved_accessibility_optimized.js');
 
 let stop = false;
 
