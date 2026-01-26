@@ -265,9 +265,14 @@
             apply: (el) => {
                 safeSetAttr(el, 'role', 'article');
                 // Construct a reading string
-                const sender = el.querySelector('.ts-chat-message-sender-name')?.textContent || "Unknown";
-                const time = el.querySelector('.ts-timestamp')?.textContent || "";
-                const content = el.querySelector('.ts-chat-message-content')?.textContent || "";
+                const senderEl = el.querySelector('.ts-chat-message-sender-name');
+                const sender = senderEl ? senderEl.textContent : "Unknown";
+
+                const timeEl = el.querySelector('.ts-timestamp');
+                const time = timeEl ? timeEl.textContent : "";
+
+                const contentEl = el.querySelector('.ts-chat-message-content');
+                const content = contentEl ? contentEl.textContent : "";
                 
                 safeSetAttr(el, 'aria-label', `${sender} at ${time}: ${content}`);
                 safeSetAttr(el, 'tabindex', '0');
@@ -300,7 +305,8 @@
             apply: (el) => {
                 safeSetAttr(el, 'role', 'region');
                 safeSetAttr(el, 'aria-label', 'Welcome to TeamSpeak');
-                el.querySelector('button')?.focus(); // Direct focus hint
+                const btn = el.querySelector('button');
+                if (btn) btn.focus(); // Direct focus hint
             }
         },
         // Generic Modal

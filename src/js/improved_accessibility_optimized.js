@@ -199,7 +199,8 @@
 
         // Try to hook router
         const checkApp = setInterval(() => {
-            const app = document.getElementById('app')?.__vue__;
+            const appEl = document.getElementById('app');
+            const app = appEl ? appEl.__vue__ : null;
             if (app && app.$router) {
                 hookRouter(app);
                 clearInterval(checkApp);

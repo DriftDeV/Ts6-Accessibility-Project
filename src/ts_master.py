@@ -80,9 +80,26 @@ def launch_teamspeak(os_type):
 
     elif os_type == "darwin": # macOS
         print("[*] Launching TeamSpeak (macOS)...")
-        # Assuming standard Application path
-        cmd = [
+        # Possible paths for TeamSpeak on macOS
+        possible_paths = [
             "/Applications/TeamSpeak.app/Contents/MacOS/TeamSpeak",
+            os.path.expanduser("~/Applications/TeamSpeak.app/Contents/MacOS/TeamSpeak"),
+            "/Applications/TeamSpeak 3 Client.app/Contents/MacOS/ts3client_mac", # Legacy/Fallback
+        ]
+        
+        ts_path = None
+        for p in possible_paths:
+            if os.path.exists(p):
+                ts_path = p
+                break
+        
+        if not ts_path:
+             print("[!] Could not find TeamSpeak.app automatically.")
+             print("    Checked in /Applications and ~/Applications.")
+             return False
+
+        cmd = [
+            ts_path,
             f"--remote-debugging-port={DEBUG_PORT}",
             "--force-renderer-accessibility"
         ]
