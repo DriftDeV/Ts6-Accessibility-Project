@@ -6,7 +6,7 @@
  */
 
 (function () {
-    console.log('[A11y Rules] Loading rules definition...');
+    console.error('[A11y Rules] Rules definition starting...');
 
     // -- Utilities ---
 
@@ -28,55 +28,61 @@
         {
             name: "Main Window",
             selector: ".tsv-window",
-            match: () => true,
+            match: (el) => !el.hasAttribute('data-a11y-applied'),
             apply: (el) => {
                 safeSetAttr(el, 'role', 'application');
                 safeSetAttr(el, 'aria-label', 'TeamSpeak Client');
+                el.setAttribute('data-a11y-applied', 'true');
             }
         },
         {
             name: "Sidebar",
             selector: ".tsv-sidebar",
-            match: () => true,
+            match: (el) => !el.hasAttribute('data-a11y-applied'),
             apply: (el) => {
                 safeSetAttr(el, 'role', 'navigation');
                 safeSetAttr(el, 'aria-label', 'Sidebar');
+                el.setAttribute('data-a11y-applied', 'true');
             }
         },
         {
             name: "Server View",
             selector: ".tsv-view.tsv-activity-main",
-            match: () => true,
+            match: (el) => !el.hasAttribute('data-a11y-applied'),
             apply: (el) => {
                 safeSetAttr(el, 'role', 'main');
                 safeSetAttr(el, 'aria-label', 'Server Browser');
+                el.setAttribute('data-a11y-applied', 'true');
             }
         },
         {
             name: "Top Toolbar",
             selector: ".tsv-header",
-            match: (el) => !el.closest('.tsv-sidebar'),
+            match: (el) => !el.closest('.tsv-sidebar') && !el.hasAttribute('data-a11y-applied'),
             apply: (el) => {
                 safeSetAttr(el, 'role', 'banner');
                 safeSetAttr(el, 'aria-label', 'Toolbar');
+                el.setAttribute('data-a11y-applied', 'true');
             }
         },
 
         // -- [SECTION B] : Server Tree & Content ---
         {
             name: "Server Tree",
-            selector: ".ts-server-tree-wrapper",
-            match: () => true,
+            selector: ".ts-server-tree-wrapper, .ts-server-tree-scroller",
+            match: (el) => !el.hasAttribute('data-a11y-applied'),
             apply: (el) => {
                 safeSetAttr(el, 'role', 'tree');
                 safeSetAttr(el, 'aria-label', 'Channels and Clients');
                 safeSetAttr(el, 'tabindex', '0');
+                el.setAttribute('data-a11y-applied', 'true');
             }
         },
         {
             name: "Channel Item",
-            selector: ".ts-server-tree-item-leaf.channel",
-            match: () => true,
+            // Using attribute selector for robustness
+            selector: "[class*='ts-server-tree-item-leaf'][class*='channel']",
+            match: () => true, // Always match to update status
             apply: (el) => {
                 safeSetAttr(el, 'role', 'treeitem');
                 safeSetAttr(el, 'tabindex', '-1'); 
@@ -108,13 +114,17 @@
                     const joinBtn = document.createElement('button');
                     joinBtn.className = 'ts-a11y-join-btn';
                     joinBtn.textContent = 'Join';
-                    joinBtn.style.cssText = 'position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;';
+                    
+                    // Robust accessible hiding
+                    joinBtn.style.cssText = 'position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;';
+                    
                     safeSetAttr(joinBtn, 'tabindex', '-1');
                     safeSetAttr(joinBtn, 'aria-label', `Join ${name}`);
 
                     joinBtn.onclick = (e) => {
                         e.preventDefault();
                         e.stopPropagation();
+                        console.error(`[A11y] Joining channel: ${name}`);
                         const dblClick = new MouseEvent('dblclick', { bubbles: true, cancelable: true, view: window });
                         el.dispatchEvent(dblClick);
                     };
@@ -128,6 +138,7 @@
                         if (e.key === 'Enter') {
                             e.preventDefault();
                             e.stopPropagation();
+                            console.error(`[A11y] Enter on channel: ${name}`);
                             const dblClick = new MouseEvent('dblclick', { bubbles: true, cancelable: true, view: window });
                             el.dispatchEvent(dblClick);
                         }
@@ -137,8 +148,9 @@
         },
         {
             name: "Client Item",
-            selector: ".ts-server-tree-item-leaf.client",
-            match: () => true,
+            // Using attribute selector for robustness
+            selector: "[class*='ts-server-tree-item-leaf'][class*='client']",
+            match: () => true, // Always match to update status
             apply: (el) => {
                 safeSetAttr(el, 'role', 'treeitem');
                 safeSetAttr(el, 'tabindex', '-1');
@@ -155,65 +167,35 @@
                 }
 
                 const badges = el.querySelectorAll('.ts-server-tree-group-icon');
-                const badgeCount = badges.length;
-                const badgeText = badgeCount > 0 ? `, ${badgeCount} badges` : "";
+                const badgeText = badges.length > 0 ? `, ${badges.length} badges` : "";
 
                 safeSetAttr(el, 'aria-label', `${nickname}, ${status}${badgeText}`);
             }
         },
-
-        // -- [SECTION C] : Chat Interaction ---
         {
-            name: "Chat Message",
-            selector: ".ts-chat-room-event-detailed",
-            match: () => true,
+            name: "Server Tree Spacer",
+            selector: ".ts-server-tree-item-leaf.spacer",
+            match: (el) => !el.hasAttribute('data-a11y-applied'),
             apply: (el) => {
-                safeSetAttr(el, 'role', 'article');
-                
-                // Construct a reading string (Merged Logic)
-                const senderEl = el.querySelector('.ts-chat-message-sender-name');
-                const sender = senderEl ? senderEl.textContent : "Unknown";
-
-                const timeEl = el.querySelector('.ts-timestamp');
-                const time = timeEl ? timeEl.textContent : "";
-
-                const contentEl = el.querySelector('.ts-chat-message-content');
-                const content = contentEl ? contentEl.textContent : "";
-                
-                safeSetAttr(el, 'aria-label', `${sender} at ${time}: ${content}`);
-                safeSetAttr(el, 'tabindex', '0');
+                safeSetAttr(el, 'role', 'separator');
+                const textEl = el.querySelector('.ts-server-tree-item-text');
+                if (textEl && textEl.textContent.trim()) {
+                    safeSetAttr(el, 'aria-label', textEl.textContent.trim());
+                    safeSetAttr(el, 'role', 'heading');
+                    safeSetAttr(el, 'aria-level', '3');
+                }
+                el.setAttribute('data-a11y-applied', 'true');
             }
         },
 
-        // -- [SECTION D] : Dialogs & Menus ---
-        {
-            name: "Splash Screen",
-            selector: ".ts-first-launch-splash",
-            match: () => true,
-            apply: (el) => {
-                safeSetAttr(el, 'role', 'region');
-                safeSetAttr(el, 'aria-label', 'Welcome to TeamSpeak');
-                const btn = el.querySelector('button');
-                if (btn) btn.focus();
-            }
-        },
-        {
-            name: "Modal Dialog",
-            selector: ".tsv-modal-container",
-            match: () => true,
-            apply: (el) => {
-                safeSetAttr(el, 'role', 'dialog');
-                safeSetAttr(el, 'aria-modal', 'true');
-                const title = el.querySelector('.tsv-modal-header-title') || el.querySelector('h1, h2');
-                if (title) safeSetAttr(el, 'aria-label', title.textContent.trim());
-            }
-        },
-
-        // -- [SECTION E] : Icons & Cleanup ---
+        // -- [SECTION C] : UI Components ---
         {
             name: "Enhanced Icons",
             selector: "svg",
-            match: (el) => !el.hasAttribute('aria-label') && !el.hasAttribute('role') && !el.getAttribute('aria-hidden'),
+            match: (el) => {
+                // Apply if no label OR if it has role presentation (which we want to override)
+                return !el.hasAttribute('aria-label') || el.getAttribute('role') === 'presentation';
+            },
             apply: (el) => {
                 const iconMap = {
                     'search': 'Search', 'notifications': 'Notifications', 'item-expand': 'Expand',
@@ -224,24 +206,39 @@
                     'item-close': 'Close', 'check': 'Success', 'error': 'Error', 'warning': 'Warning',
                     'info': 'Information', 'bookmark': 'Bookmark', 'edit': 'Edit', 'delete': 'Delete',
                     'copy': 'Copy', 'link': 'Link', 'lock': 'Locked', 'eye': 'View', 'eye-slash': 'Hide',
-                    'plus': 'Add', 'minus': 'Remove'
+                    'plus': 'Add', 'minus': 'Remove', 'teamspeak-label': 'TeamSpeak'
                 };
 
                 const name = el.getAttribute('name');
                 if (name && iconMap[name]) {
                     safeSetAttr(el, 'role', 'img');
                     safeSetAttr(el, 'aria-label', iconMap[name]);
-                } else if (el.closest('.tsv-icon-no-animation') || el.classList.contains('tsv-icon-no-animation')) {
-                     safeSetAttr(el, 'aria-hidden', 'true');
+                    safeSetAttr(el, 'aria-hidden', 'false');
                 } else if (name && name.length > 2) {
                     safeSetAttr(el, 'role', 'img');
                     safeSetAttr(el, 'aria-label', cleanLabel(name));
+                    safeSetAttr(el, 'aria-hidden', 'false');
                 } else {
                     safeSetAttr(el, 'aria-hidden', 'true');
+                    safeSetAttr(el, 'role', 'presentation');
                 }
+            }
+        },
+        {
+            name: "Chat Message",
+            selector: ".ts-chat-room-event-detailed",
+            match: (el) => !el.hasAttribute('data-a11y-applied'),
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'article');
+                const sender = el.querySelector('.ts-chat-message-sender-name')?.textContent || "Unknown";
+                const time = el.querySelector('.ts-timestamp')?.textContent || "";
+                const content = el.querySelector('.ts-chat-message-content')?.textContent || "";
+                safeSetAttr(el, 'aria-label', `${sender} at ${time}: ${content}`);
+                safeSetAttr(el, 'tabindex', '0');
+                el.setAttribute('data-a11y-applied', 'true');
             }
         }
     ];
 
-    console.log('[A11y Rules] Rules merged and loaded.');
+    console.error('[A11y Rules] Rules merged and loaded.');
 })();

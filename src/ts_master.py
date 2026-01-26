@@ -11,8 +11,8 @@ from urllib.error import URLError
 try:
     import websocket
 except ImportError:
-    print("Error: 'websocket-client' not installed.")
-    print("Please install dependencies using: pip install .")
+    print("[!] Error: 'websocket-client' not installed.")
+    print("    Please install dependencies using: pip install websocket-client")
     sys.exit(1)
 
 # Configuration
@@ -38,11 +38,14 @@ def launch_teamspeak(os_type):
         # Check for Flatpak
         try:
             # Check if flatpak is installed and the TS package exists
-            flatpak_list = subprocess.check_output(["flatpak", "list"], text=True)
+            try:
+                flatpak_list = subprocess.check_output(["flatpak", "list"], text=True)
+            except FileNotFoundError:
+                flatpak_list = ""
+
             if "com.teamspeak.TeamSpeak" in flatpak_list:
                 print("[*] Launching TeamSpeak (Flatpak)...")
                 # Flatpak requires passing arguments via --command or directly if supported.
-                # Usually: flatpak run <app> <args>
                 cmd = [
                     "flatpak", "run", 
                     "com.teamspeak.TeamSpeak", 
@@ -52,8 +55,8 @@ def launch_teamspeak(os_type):
             else:
                 print("[!] TeamSpeak Flatpak not found. Assuming standard binary 'teamspeak' in PATH...")
                 cmd = ["teamspeak", f"--remote-debugging-port={DEBUG_PORT}", "--force-renderer-accessibility"]
-        except FileNotFoundError:
-             print("[!] Flatpak not installed. Assuming binary 'teamspeak'...")
+        except Exception as e:
+             print(f"[!] Error checking flatpak: {e}")
              cmd = ["teamspeak", f"--remote-debugging-port={DEBUG_PORT}", "--force-renderer-accessibility"]
 
     elif os_type == "windows":
@@ -129,17 +132,41 @@ def get_websocket_debugger_url():
     url = f"http://localhost:{DEBUG_PORT}/json"
     print(f"[*] Connecting to {url}...")
     
-    for i in range(10): # Try for 10 seconds
+    for i in range(15): # Increased to 15 seconds
         try:
             with urllib.request.urlopen(url) as response:
                 data = json.load(response)
-                # Look for the 'page' or 'app' type target
+                
+                candidates = []
+                print(f"[*] Available Targets ({len(data)}):")
                 for target in data:
-                    if target.get('type') == 'page' and 'webSocketDebuggerUrl' in target:
-                        return target['webSocketDebuggerUrl']
+                    t_type = target.get('type')
+                    t_title = target.get('title', 'Unknown')
+                    t_url = target.get('url', 'Unknown')
+                    t_ws = target.get('webSocketDebuggerUrl')
+                    
+                    print(f"    - Type: {t_type} | Title: {t_title} | URL: {t_url}")
+                    
+                    if t_type == 'page' and t_ws:
+                        candidates.append(target)
+
+                # Heuristic: Prefer "TeamSpeak Client UI"
+                best_target = None
+                for c in candidates:
+                    if "TeamSpeak Client UI" in c.get('title', ''):
+                        best_target = c
+                        break
+                
+                if not best_target and candidates:
+                    best_target = candidates[0] # Fallback to first page
+
+                if best_target:
+                    print(f"[*] Selected Target: {best_target.get('title')} ({best_target.get('url')})")
+                    return best_target['webSocketDebuggerUrl']
+                    
         except (URLError, ConnectionRefusedError):
             time.sleep(1)
-            print(f"    Waiting for debugger... ({i+1}/10)")
+            print(f"    Waiting for debugger... ({i+1}/15)")
     
     return None
 
@@ -149,12 +176,15 @@ def inject_logic(ws_url, script_content):
     """
     try:
         ws = websocket.create_connection(ws_url)
+        print("[*] Connected to WebSocket.")
         
         # 1. Enable Runtime
         ws.send(json.dumps({"id": 1, "method": "Runtime.enable"}))
-        ws.recv() # Discard response
+        resp = ws.recv()
+        # print(f"[DEBUG] Runtime.enable: {resp}")
         
         # 2. Evaluate script (Inject)
+        print("[*] Injecting script via Runtime.evaluate...")
         msg = {
             "id": 2,
             "method": "Runtime.evaluate",
@@ -166,7 +196,7 @@ def inject_logic(ws_url, script_content):
         }
         ws.send(json.dumps(msg))
         result = ws.recv()
-        print(f"[DEBUG] Injection result: {result}")
+        # print(f"[DEBUG] Evaluate result: {result}")
         
         # 3. Enable Page events to auto-inject on reload/navigation
         ws.send(json.dumps({"id": 3, "method": "Page.enable"}))
@@ -176,6 +206,7 @@ def inject_logic(ws_url, script_content):
         ws.send(json.dumps({"id": 4, "method": "Console.enable"}))
         ws.recv()
         
+        print("[*] Setting script to evaluate on new document...")
         add_script_msg = {
             "id": 5,
             "method": "Page.addScriptToEvaluateOnNewDocument",
@@ -187,19 +218,32 @@ def inject_logic(ws_url, script_content):
         result = ws.recv()
         
         print("[+] Script injected successfully!")
-        print("[+] Monitoring... Press Ctrl+C to stop.")
+        print("[+] Monitoring Logs (Press Ctrl+C to stop)...")
         
         # Keep connection alive to monitor log events or keep injection active
         while True:
-            result = ws.recv()
-            data = json.loads(result)
-            if data.get("method") == "Console.messageAdded":
-                msg = data["params"]["message"]
-                print(f"[Console] {msg.get('level', 'info')}: {msg.get('text', '')}")
-            elif data.get("method") == "Runtime.consoleAPICalled":
-                params = data["params"]
-                args = [str(arg.get("value", arg.get("description", "?"))) for arg in params.get("args", [])]
-                print(f"[Console API] {params.get('type', 'log')}: {' '.join(args)}")
+            try:
+                result = ws.recv()
+                data = json.loads(result)
+                if data.get("method") == "Console.messageAdded":
+                    msg = data["params"]["message"]
+                    lvl = msg.get('level', 'info')
+                    txt = msg.get('text', '')
+                    if lvl == 'error':
+                        print(f"\033[91m[Console Error] {txt}\033[0m") # Red
+                    else:
+                        print(f"[Console] {txt}")
+                elif data.get("method") == "Runtime.consoleAPICalled":
+                    params = data["params"]
+                    type_ = params.get('type', 'log')
+                    args = [str(arg.get("value", arg.get("description", "?"))) for arg in params.get("args", [])]
+                    txt = ' '.join(args)
+                    if type_ == 'error':
+                        print(f"\033[91m[Console API Error] {txt}\033[0m")
+                    else:
+                        print(f"[Console API] {txt}")
+            except websocket.WebSocketTimeoutException:
+                pass 
 
     except websocket.WebSocketConnectionClosedException:
         print("\n[*] Connection to TeamSpeak lost (Application closed or reloaded).")
@@ -222,6 +266,7 @@ def main():
     time.sleep(3)
     
     # 3. Read the Accessibility Scripts
+    print("[*] Reading injection scripts...")
     script_content = ""
     for path_ in INJECT_SCRIPT_PATHS:
         if not os.path.exists(path_):
