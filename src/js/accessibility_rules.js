@@ -867,7 +867,7 @@
         },
         {
             name: "Chat Input Area",
-            selector: ".ts-chat-input-container .ts-input-as-text",
+            selector: ".ts-chat-input-container-content-inner",
             match: () => true,
             apply: (el) => {
                 safeSetAttr(el, 'role', 'textbox');
@@ -875,6 +875,24 @@
                 if (!el.hasAttribute('aria-label')) {
                     safeSetAttr(el, 'aria-label', 'Type a message');
                 }
+            }
+        },
+        {
+            name: "Chat Actions",
+            selector: ".ts-chat-input-container-actions",
+            match: () => true,
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'group')
+                safeSetAttr(el, 'aria-label', 'actions')
+            }
+        },
+        {
+            name: "left-side-section",
+            selector: ".tsv-body.tsv-flex-column.tsv-virtual-list-container",
+            match: () => true,
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'section')
+                safeSetAttr(el, 'aria-label', 'left-section-panel')
             }
         },
 
@@ -1019,55 +1037,91 @@
             apply: (el) => {
                 safeSetAttr(el, 'role', 'region');
                 safeSetAttr(el, 'aria-label', 'Setup Stream Settings');
-                let settings_sections = el.querySelectorAll('.setup-stream__settings-section');
-                if (settings_sections) {
-                    settings_sections.forEach(section => {
-                        safeSetAttr(section, 'role', 'region');
-                        safeSetAttr(section, 'aria-label', 'Setup Stream Settings Section');
+                let basic_settings = el.querySelector('.setup-stream__settings-section');
+                if (basic_settings) {
+                    
+                    safeSetAttr(basic_settings, 'role', 'region');
+                    safeSetAttr(basic_settings, 'aria-label', 'Stream Basic Settings Section');
 
-                        let heading = section.querySelector('.ts-expander');
-                        if (heading) {
-                            safeSetAttr(heading, 'role', 'heading');
-                            safeSetAttr(heading, 'aria-level', '2');
-                            safeSetAttr(heading, 'tabindex', '0');
+                    let heading = basic_settings.querySelector('.ts-expander');
+                    if (heading) {
+                        safeSetAttr(heading, 'role', 'heading');
+                        safeSetAttr(heading, 'aria-level', '2');
+                        safeSetAttr(heading, 'tabindex', '0');
 
-                            const labelContainer = heading.querySelector('.label');
-                            const labelText = labelContainer ? labelContainer.querySelector('.ts-font-large') : null;
-                            if (labelText) {
-                                safeSetAttr(heading, 'aria-label', cleanLabel(labelText.textContent));
-                            }
+                        const labelContainer = heading.querySelector('.label');
+                        const labelText = labelContainer ? labelContainer.querySelector('.ts-font-large') : null;
+                        if (labelText) {
+                            safeSetAttr(heading, 'aria-label', cleanLabel(labelText.textContent));
+                        }
+                    }
+                    let basic_settings_rows = basic_settings.querySelectorAll('.tsv-flex-row');
+                    basic_settings_rows.forEach(row => {
+                        safeSetAttr(row, 'role', 'group');
+                        safeSetAttr(row, 'tabindex', '0');
+                        // FIX: Label selector logic was too specific/incorrect
+                        const labelEl = row.querySelector('.tsv-label-inline') || row.querySelector('label');
+                        if (labelEl) {
+                            safeSetAttr(row, 'aria-label', cleanLabel(labelEl.textContent));
                         }
 
-                        let advanced_settings_rows = section.querySelectorAll('.tsv-flex-row');
-                        advanced_settings_rows.forEach(row => {
-                            safeSetAttr(row, 'role', 'group');
-                            safeSetAttr(row, 'tabindex', '0');
-                            // FIX: Label selector logic was too specific/incorrect
-                            const labelEl = row.querySelector('.tsv-label-inline') || row.querySelector('label');
-                            if (labelEl) {
-                                safeSetAttr(row, 'aria-label', cleanLabel(labelEl.textContent));
-                            }
+                        // Handling controls
+                        let flex1 = row.querySelector('.tsv-flex-1');
+                        if (flex1) {
+                            let controls = flex1.querySelector('.tsv-segmented-control');
+                            if (controls) {
+                                safeSetAttr(controls, 'role', 'group');
+                                safeSetAttr(controls, 'tabindex', '0');
+                                if (labelEl) safeSetAttr(controls, 'aria-label', cleanLabel(labelEl.textContent));
 
-                            // Handling controls
-                            let flex1 = row.querySelector('.tsv-flex-1');
-                            if (flex1) {
-                                let controls = flex1.querySelector('.tsv-segmented-control');
-                                if (controls) {
-                                    safeSetAttr(controls, 'role', 'group');
-                                    safeSetAttr(controls, 'tabindex', '0');
-                                    if (labelEl) safeSetAttr(controls, 'aria-label', cleanLabel(labelEl.textContent));
-
-                                    let buttons = controls.querySelectorAll('.tsv-segmented-button');
-                                    buttons.forEach(button => {
-                                        safeSetAttr(button, 'role', 'button');
-                                        safeSetAttr(button, 'tabindex', '0');
-                                        const btnLabel = button.textContent;
-                                        safeSetAttr(button, 'aria-label', cleanLabel(btnLabel));
-                                        safeSetAttr(button, 'aria-pressed', button.classList.contains('active') ? 'true' : 'false');
-                                    })
-                                }
+                                let buttons = controls.querySelectorAll('.tsv-segmented-button');
+                                buttons.forEach(button => {
+                                    safeSetAttr(button, 'role', 'button');
+                                    safeSetAttr(button, 'tabindex', '0');
+                                    const btnLabel = button.textContent;
+                                    safeSetAttr(button, 'aria-label', cleanLabel(btnLabel));
+                                    safeSetAttr(button, 'aria-pressed', button.classList.contains('active') ? 'true' : 'false');
+                                })
                             }
-                        })
+                        }
+                    })
+                }
+                let advanced_settings = el.querySelector(".setup-stream__settings-section.tsv-mar-t-large");
+                if (advanced_settings) {
+                    safeSetAttr(advanced_settings, 'role', 'button');
+                    safeSetAttr(advanced_settings, 'aria-label', 'advanced_settings');
+                }
+            }
+        },
+        // Advanced Settings Groups Accessibility
+        {
+            name: "Advanced Settings Groups Accessibility",
+            selector: ".setup-stream__settings",
+            match: () => true,
+            apply: (el) => {
+                let advanced_settings_items = el.querySelectorAll(".tsv-flex-row");
+                if (advanced_settings_items) {
+                    advanced_settings_items.forEach(item => {
+                        const label = cleanLabel(item.querySelector('.tsv-flex').textContent);
+                        safeSetAttr(item, 'role', 'group');
+                        safeSetAttr(item, 'aria-label', label);
+                        safeSetAttr(item, 'tabindex', '0');
+                        let pickerType_params = item.querySelector('.tsv-flex-grow');
+                        if (pickerType_params) {
+                            let picker_field = pickerType_params.querySelector('.tsv-number-picker-field');
+                            safeSetAttr(picker_field, 'role', 'textfield');
+                        }
+                        // Accessibilità pulsanti Advanced Settings
+                        let btnType_controls_section = item.querySelector('.tsv-flex-1') // Sezione controlli
+                        if (btnType_controls_section) {
+                            btnList = btnType_controls_section.querySelector('.tsv-segmented-control.tsv-mar-t-small');
+                            btnList.querySelectorAll('.tsv-segmented-button').forEach(btn => {
+                                const label = btn.textContent;
+                                safeSetAttr(btn, 'role', 'button');
+                                safeSetAttr(btn, 'aria-label', label)
+                                safeSetAttr(btn, 'tabindex', '0')
+                            })
+                        }
                     })
                 }
             }
