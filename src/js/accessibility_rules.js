@@ -582,6 +582,24 @@
                 safeSetAttr(el, 'aria-label', 'Server and Chat Resources');
             }
         },
+        {
+            name: "Buttons menubar",
+            selector: ".tsv-bar.tsv-window-bar",
+            match: () => true,
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'menubar');
+                safeSetAttr(el, 'tabindex', '0');
+                safeSetAttr(el, 'aria-label', 'Server Actions Menu Bar');
+                let toolBtn = el.querySelectorAll('.tsv-tool-button')
+                toolBtn.forEach(btn => {
+                    safeSetAttr(btn, 'role', 'button');
+                    const svg = btn.querySelector('svg');
+                    const label = svg.getAttribute('name') || 'Action';
+                    safeSetAttr(btn, 'aria-label', label);
+                    safeSetAttr(btn, 'tabindex', '0');
+                })
+            }
+        },
 
         // -- [SECTION D] : Lists, Trees & Items ---
         // [DESCRIPTION] Handles structured data like the server tree, bookmarks and lists.
@@ -658,7 +676,7 @@
 
                 const nickEl = el.querySelector('.ts-client-nick');
                 const nickname = nickEl ? nickEl.textContent.trim() : "Client";
-                
+
                 safeSetAttr(el, 'aria-label', `${nickname}`);
             }
         },
