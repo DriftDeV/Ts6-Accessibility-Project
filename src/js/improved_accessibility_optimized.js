@@ -54,39 +54,28 @@
     }
 
     const magneticFocusTargets = [
-        // 1. Context Menus (Highest Priority)
         {
             selector: '.ts-context-menu',
             check: (el) => isVisible(el),
             target: (el) => el.querySelector('.tsv-item, [role="menuitem"]'),
             message: "Context Menu"
         },
-        // 2. Modals / Dialogs
         {
             selector: '.tsv-modal-container',
             check: (el) => isVisible(el) && !el.closest('.hidden'),
             target: (el) => el.querySelector('input, button, [tabindex="0"]'),
             message: "Dialog Open"
         },
-        // 3. Server Tree (Main View)
         {
             selector: '.tsv-view.tsv-activity-main',
             check: (el) => isVisible(el) && !document.querySelector('.ts-context-menu'),
             target: (el) => {
-                // Try to find the focused/selected channel first
                 let target = el.querySelector('.ts-server-tree-item-leaf.channel.tsv-selected');
                 if (!target) target = el.querySelector('.ts-server-tree-item-leaf');
                 if (!target) target = el.querySelector('.ts-server-tree-wrapper');
                 return target;
             },
             message: "Server Browser"
-        },
-        // 4. Initial Setup Screens
-        {
-            selector: '.ts-first-launch-splash',
-            check: (el) => isVisible(el),
-            target: (el) => el.querySelector('button'),
-            message: "Welcome Screen"
         }
     ];
 
@@ -97,7 +86,6 @@
         
         window.__ts_focus_timer = setTimeout(() => {
             const active = document.activeElement;
-            // Don't steal focus if user is typing or in a menu
             if (active && (
                 active.tagName === 'INPUT' || 
                 active.tagName === 'TEXTAREA' || 
@@ -113,8 +101,7 @@
                     if (rule.check(el)) {
                         const target = rule.target(el);
                         if (target) {
-                            if (el.contains(active)) return; // Already inside
-
+                            if (el.contains(active)) return;
                             safeSetAttr(target, 'tabindex', '-1');
                             target.focus();
                             console.log(`[A11y] Focus -> ${rule.message}`);
@@ -130,27 +117,16 @@
     // --- Rule Application ---
 
     function applyRules(root) {
-        if (!window.tsA11yRules || !Array.isArray(window.tsA11yRules)) {
-            console.warn('[A11y] No rules found.');
-            return;
-        }
-        
-        let count = 0;
+        if (!window.tsA11yRules) return;
         window.tsA11yRules.forEach(rule => {
             try {
-                const elements = root.querySelectorAll(rule.selector);
-                elements.forEach(el => {
-                    if (rule.match(el)) {
-                        rule.apply(el);
-                        count++;
-                    }
+                root.querySelectorAll(rule.selector).forEach(el => {
+                    if (rule.match(el)) rule.apply(el);
                 });
             } catch (e) {
-                console.error(`[A11y] Error in rule ${rule.name}:`, e);
+                console.error(e);
             }
         });
-        // console.log(`[A11y] Applied rules to ${count} elements.`);
-        
         injectStyles();
     }
 
@@ -159,12 +135,23 @@
         const css = `
             .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
             :focus { outline: 3px solid #00AAFF !important; outline-offset: 2px !important; z-index: 1000; }
-            [role="treeitem"]:focus { background-color: rgba(0, 170, 255, 0.2) !important; }
         `;
         const style = document.createElement('style');
         style.id = 'ts-a11y-styles';
         style.textContent = css;
         document.head.appendChild(style);
+    }
+
+    function hookRouter(app) {
+        if (!app.$router || app.__a11y_router_hooked) return;
+        app.__a11y_router_hooked = true;
+        app.$router.afterEach(() => {
+            setTimeout(() => {
+                applyRules(document);
+                handleMagneticFocus([]);
+            }, 300);
+        });
+        console.log('[A11y] Router hooked.');
     }
 
     // --- Initialization ---
@@ -188,21 +175,16 @@
             attributes: true,
             attributeFilter: ['style', 'class', 'hidden']
         });
-        
-        // Router Hook (Vue)
-        setTimeout(() => {
-             const app = document.getElementById('app')?.__vue__;
-             if (app && app.$router && !app.__a11y_hooked) {
-                 app.__a11y_hooked = true;
-                 app.$router.afterEach(() => {
-                     setTimeout(() => {
-                         applyRules(document);
-                         handleMagneticFocus([]);
-                     }, 300);
-                 });
-                 console.log('[A11y] Vue Router hooked.');
-             }
-        }, 2000);
+
+        // Try to hook router (Merged logic)
+        const checkApp = setInterval(() => {
+            const appEl = document.getElementById('app');
+            const app = appEl ? appEl.__vue__ : null;
+            if (app && app.$router) {
+                hookRouter(app);
+                clearInterval(checkApp);
+            }
+        }, 1000);
     }
 
     if (document.readyState === 'loading') {
