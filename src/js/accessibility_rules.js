@@ -589,7 +589,30 @@
             name: "Bookmark List Container",
             selector: ".bookmarks",
             match: () => true,
-            apply: (el) => safeSetAttr(el, 'role', 'list')
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'menu')
+                let entries = el.querySelectorAll('.tsv-item.ts-bookmark-entry')
+                if (entries) { // Bookmark Entries
+                    entries.forEach(entry =>{
+                        safeSetAttr(entry, 'role', 'menuitem');
+                        const iconStack = entry.querySelector('.tsv-item-icon-stack');
+                        if (iconStack) safeSetAttr(iconStack, 'aria-hidden', 'true');
+                        const textDiv = entry.querySelector('.tsv-item-text .tsv-text-truncate');
+                        const label = textDiv ? textDiv.textContent : 'Bookmark';
+                        safeSetAttr(entry, 'aria-label', label);})
+                }
+                let folders = el.querySelectorAll('.tsv-item.ts-bookmark-folder-box') 
+                if (folders) {
+                    folders.forEach(folder => {
+                        safeSetAttr(folder, 'role', 'menuitem');
+                        const iconStack = folder.querySelector('.tsv-item-icon-stack');
+                        if (iconStack) safeSetAttr(iconStack, 'aria-hidden', 'true');
+                        const textDiv = folder.querySelector('.tsv-item-text .tsv-text-truncate');
+                        const label = textDiv ? textDiv.textContent : 'Folder';
+                        safeSetAttr(folder, 'aria-label', label);
+                    })
+                }
+            }
         },
         {
             name: "Contact List Container",
@@ -606,33 +629,6 @@
                 safeSetAttr(el, 'tabindex', '0');
                 const textEl = el.querySelector(".tsv-text-truncate");
                 if (textEl) safeSetAttr(el, 'aria-label', textEl.textContent.trim());
-            }
-        },
-        {
-            name: "Bookmark Entry",
-            selector: ".tsv-item.ts-bookmark-entry",
-            match: () => true,
-            apply: (el) => {
-                safeSetAttr(el, 'role', 'listitem');
-                const iconStack = el.querySelector('.tsv-item-icon-stack');
-                if (iconStack) safeSetAttr(iconStack, 'aria-hidden', 'true');
-                const textDiv = el.querySelector('.tsv-item-text .tsv-text-truncate');
-                const label = textDiv ? textDiv.textContent : 'Bookmark';
-                safeSetAttr(el, 'aria-label', label);
-            }
-        },
-        {
-            name: "Bookmark Folders",
-            selector: ".tsv-item.ts-bookmark-folder-box",
-            match: () => true,
-            apply: (el) => {
-                safeSetAttr(el, 'role', 'listitem');
-                const iconStack = el.querySelector('.tsv-item-icon-stack');
-                if (iconStack) safeSetAttr(iconStack, 'aria-hidden', 'true');
-
-                const textDiv = el.querySelector('.tsv-item-text .tsv-text-truncate');
-                const label = textDiv ? textDiv.textContent : 'Folder';
-                safeSetAttr(el, 'aria-label', label);
             }
         },
         {
