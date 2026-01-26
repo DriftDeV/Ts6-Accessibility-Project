@@ -52,71 +52,194 @@
     }
 
     // --- Magnetic Focus Configuration ---
-    
+
     function isVisible(el) {
         return el && (el.offsetParent !== null);
     }
+
+    // Track server connection state for magnetic focus
+    let lastServerCount = 0;
+    let serverJoinPending = false;
 
     const magneticFocusTargets = [
         {
             selector: '.ts-context-menu',
             check: (el) => isVisible(el),
             target: (el) => el.querySelector('.tsv-item, [role="menuitem"]'),
-            message: "Context Menu"
+            message: "Context Menu",
+            priority: 1
         },
         {
             selector: '.tsv-modal-container',
             check: (el) => isVisible(el) && !el.closest('.hidden'),
             target: (el) => el.querySelector('input, button, [tabindex="0"]'),
-            message: "Dialog Open"
+            message: "Dialog Open",
+            priority: 2
         },
         {
             selector: '.tsv-view.tsv-activity-main',
-            check: (el) => isVisible(el) && !document.querySelector('.ts-context-menu'),
+            check: (el) => {
+                // Check if visible and no modal/menu is open
+                if (!isVisible(el)) return false;
+                if (document.querySelector('.ts-context-menu')) return false;
+                if (document.querySelector('.tsv-modal-container:not(.hidden)')) return false;
+
+                // Check if this is a new server join
+                if (serverJoinPending) {
+                    return true;
+                }
+
+                return false;
+            },
             target: (el) => {
-                let target = el.querySelector('.ts-server-tree-item-leaf.channel.tsv-selected');
-                if (!target) target = el.querySelector('.ts-server-tree-item-leaf');
-                if (!target) target = el.querySelector('.ts-server-tree-wrapper');
+                // For server view, find the current channel or first item
+                // First, try to find the channel we're in (self indicator)
+                let target = el.querySelector('.ts-server-tree-item-leaf.client.self');
+                if (target) {
+                    // Go to parent channel
+                    const channelContainer = target.closest('.ts-server-tree-item-container');
+                    if (channelContainer) {
+                        const channel = channelContainer.querySelector('.ts-server-tree-item-leaf.channel');
+                        if (channel) target = channel;
+                    }
+                }
+
+                if (!target) {
+                    target = el.querySelector('.ts-server-tree-item-leaf.channel.tsv-selected');
+                }
+                if (!target) {
+                    target = el.querySelector('.ts-server-tree-item-leaf.channel');
+                }
+                if (!target) {
+                    target = el.querySelector('.ts-server-tree-item-leaf');
+                }
+                if (!target) {
+                    target = el.querySelector('.ts-server-tree-wrapper');
+                }
                 return target;
             },
-            message: "Server Browser"
+            message: "Server View",
+            priority: 3,
+            onFocus: () => {
+                serverJoinPending = false;
+            }
         }
     ];
+
+    // Detect server join by monitoring server tabs
+    function checkForServerJoin() {
+        const serverTabs = document.querySelectorAll('.tsv-activity-group-list .tsv-item, .tsv-item-group .tsv-item');
+        const currentCount = serverTabs.length;
+
+        if (currentCount > lastServerCount && lastServerCount > 0) {
+            console.error('[A11y] Server join detected!');
+            serverJoinPending = true;
+            // Trigger magnetic focus after a brief delay for UI to settle
+            setTimeout(() => {
+                handleMagneticFocus([]);
+            }, 300);
+        }
+
+        lastServerCount = currentCount;
+    }
+
+    // Also detect server join by watching for server tree appearing
+    function checkForServerTreeChange(mutations) {
+        for (const mutation of mutations) {
+            if (mutation.type === 'childList') {
+                for (const node of mutation.addedNodes) {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        // Check if a server tree appeared
+                        if (node.classList && (
+                            node.classList.contains('ts-server-tree-wrapper') ||
+                            node.classList.contains('ts-server-tree-scroller') ||
+                            node.querySelector && node.querySelector('.ts-server-tree-wrapper')
+                        )) {
+                            console.error('[A11y] Server tree appeared - triggering focus');
+                            serverJoinPending = true;
+                            setTimeout(() => {
+                                handleMagneticFocus([]);
+                            }, 300);
+                            return;
+                        }
+
+                        // Check if we joined a channel (self client appeared)
+                        if (node.classList && node.classList.contains('self')) {
+                            console.error('[A11y] Joined channel - triggering focus');
+                            serverJoinPending = true;
+                            setTimeout(() => {
+                                handleMagneticFocus([]);
+                            }, 200);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // --- Focus Management ---
 
     function handleMagneticFocus(mutations) {
         if (window.__ts_focus_timer) clearTimeout(window.__ts_focus_timer);
-        
+
+        // Check for server tree changes
+        if (mutations && mutations.length > 0) {
+            checkForServerTreeChange(mutations);
+        }
+
         window.__ts_focus_timer = setTimeout(() => {
             const active = document.activeElement;
+
+            // Don't steal focus from inputs or active menus
             if (active && (
-                active.tagName === 'INPUT' || 
-                active.tagName === 'TEXTAREA' || 
+                active.tagName === 'INPUT' ||
+                active.tagName === 'TEXTAREA' ||
                 active.getAttribute('role') === 'menuitem' ||
                 active.closest('.ts-context-menu')
             )) {
                 return;
             }
 
-            for (const rule of magneticFocusTargets) {
+            // Sort rules by priority (lower number = higher priority)
+            const sortedRules = [...magneticFocusTargets].sort((a, b) =>
+                (a.priority || 99) - (b.priority || 99)
+            );
+
+            for (const rule of sortedRules) {
                 const elements = document.querySelectorAll(rule.selector);
                 for (const el of elements) {
                     if (rule.check(el)) {
                         const target = rule.target(el);
                         if (target) {
-                            if (el.contains(active)) return;
+                            // Don't re-focus if already inside this element
+                            if (el.contains(active)) {
+                                // But call onFocus if present to reset state
+                                if (rule.onFocus) rule.onFocus();
+                                return;
+                            }
+
                             safeSetAttr(target, 'tabindex', '-1');
                             target.focus();
                             console.error(`[A11y] Focus -> ${rule.message}`);
                             TTS.announce(rule.message);
-                            return; 
+
+                            // Call onFocus callback if present
+                            if (rule.onFocus) rule.onFocus();
+
+                            return;
                         }
                     }
                 }
             }
         }, 150);
     }
+
+    // Force focus to server view (can be called externally)
+    window.tsA11yFocusServerView = function() {
+        serverJoinPending = true;
+        handleMagneticFocus([]);
+    };
 
     // --- Rule Application ---
 
@@ -199,11 +322,16 @@
         createLiveRegion();
         applyRules(document);
 
+        // Initialize server count
+        checkForServerJoin();
+
         const observer = new MutationObserver((mutations) => {
             const hasNodes = mutations.some(m => m.type === 'childList' && m.addedNodes.length > 0);
             if (hasNodes) {
                 applyRules(document);
                 handleMagneticFocus(mutations);
+                // Also check for server joins
+                checkForServerJoin();
             }
         });
 
@@ -215,7 +343,10 @@
         });
 
         // Periodic check to ensure rules are applied even if mutations are missed
-        setInterval(() => applyRules(document), 2000);
+        setInterval(() => {
+            applyRules(document);
+            checkForServerJoin();
+        }, 2000);
 
         // Try to hook router
         const checkApp = setInterval(() => {
@@ -224,6 +355,15 @@
             if (app && app.$router) {
                 hookRouter(app);
                 clearInterval(checkApp);
+            }
+        }, 1000);
+
+        // Initial focus to server view if connected
+        setTimeout(() => {
+            const serverTree = document.querySelector('.ts-server-tree-wrapper');
+            if (serverTree && isVisible(serverTree)) {
+                serverJoinPending = true;
+                handleMagneticFocus([]);
             }
         }, 1000);
     }

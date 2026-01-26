@@ -54,7 +54,17 @@
             match: (el) => !el.hasAttribute('data-a11y-applied'),
             apply: (el) => {
                 safeSetAttr(el, 'role', 'navigation');
-                safeSetAttr(el, 'aria-label', 'Server tabs');
+                safeSetAttr(el, 'aria-label', 'Server tabs and resources');
+                el.setAttribute('data-a11y-applied', 'true');
+            }
+        },
+        {
+            name: "Sidebar Content Area",
+            selector: ".tsv-sidebar-content",
+            match: (el) => !el.hasAttribute('data-a11y-applied'),
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'region');
+                safeSetAttr(el, 'aria-label', 'Sidebar sections');
                 el.setAttribute('data-a11y-applied', 'true');
             }
         },
@@ -75,6 +85,165 @@
             apply: (el) => {
                 safeSetAttr(el, 'role', 'toolbar');
                 safeSetAttr(el, 'aria-label', 'Main toolbar');
+                el.setAttribute('data-a11y-applied', 'true');
+            }
+        },
+
+        // =====================================================
+        // [SECTION A2] : SIDEBAR SECTIONS (Bookmarks, Contacts, Groups)
+        // =====================================================
+        {
+            name: "Sidebar Resources Group",
+            selector: ".tsv-resources-group",
+            match: (el) => !el.hasAttribute('data-a11y-section'),
+            apply: (el) => {
+                // Determine section type from content
+                const bookmarksIcon = el.querySelector('[name="bookmarks"]');
+                const contactsIcon = el.querySelector('[name="contacts"]');
+                const groupsIcon = el.querySelector('[name="groups"]');
+                const isFooter = el.classList.contains('ts-sidebar-bottom-drop-area');
+                const activityGroup = el.querySelector('.tsv-activity-group');
+
+                let sectionName = 'Resources';
+                if (isFooter) {
+                    sectionName = 'User Profile';
+                    safeSetAttr(el, 'role', 'region');
+                } else if (bookmarksIcon) {
+                    sectionName = 'Bookmarks';
+                    safeSetAttr(el, 'role', 'region');
+                } else if (contactsIcon) {
+                    sectionName = 'Contacts';
+                    safeSetAttr(el, 'role', 'region');
+                } else if (groupsIcon) {
+                    sectionName = 'Groups';
+                    safeSetAttr(el, 'role', 'region');
+                } else if (activityGroup) {
+                    sectionName = 'Servers';
+                    safeSetAttr(el, 'role', 'region');
+                }
+
+                safeSetAttr(el, 'aria-label', sectionName);
+                el.setAttribute('data-a11y-section', sectionName.toLowerCase());
+            }
+        },
+        {
+            name: "Bookmarks Section Header",
+            selector: ".tsv-tab-item [name='bookmarks']",
+            match: (el) => {
+                const tabItem = el.closest('.tsv-tab-item');
+                return tabItem && !tabItem.hasAttribute('data-a11y-applied');
+            },
+            apply: (el) => {
+                const tabItem = el.closest('.tsv-tab-item');
+                if (tabItem) {
+                    safeSetAttr(tabItem, 'role', 'heading');
+                    safeSetAttr(tabItem, 'aria-level', '2');
+                    safeSetAttr(tabItem, 'aria-label', 'Bookmarks');
+                    safeSetAttr(tabItem, 'tabindex', '0');
+                    tabItem.setAttribute('data-a11y-applied', 'true');
+                }
+            }
+        },
+        {
+            name: "Contacts Section Header",
+            selector: ".tsv-tab-item [name='contacts']",
+            match: (el) => {
+                const tabItem = el.closest('.tsv-tab-item');
+                return tabItem && !tabItem.hasAttribute('data-a11y-applied');
+            },
+            apply: (el) => {
+                const tabItem = el.closest('.tsv-tab-item');
+                if (tabItem) {
+                    safeSetAttr(tabItem, 'role', 'heading');
+                    safeSetAttr(tabItem, 'aria-level', '2');
+                    safeSetAttr(tabItem, 'aria-label', 'Contacts');
+                    safeSetAttr(tabItem, 'tabindex', '0');
+                    tabItem.setAttribute('data-a11y-applied', 'true');
+                }
+            }
+        },
+        {
+            name: "Groups Section Header",
+            selector: ".tsv-tab-item [name='groups']",
+            match: (el) => {
+                const tabItem = el.closest('.tsv-tab-item');
+                return tabItem && !tabItem.hasAttribute('data-a11y-applied');
+            },
+            apply: (el) => {
+                const tabItem = el.closest('.tsv-tab-item');
+                if (tabItem) {
+                    safeSetAttr(tabItem, 'role', 'heading');
+                    safeSetAttr(tabItem, 'aria-level', '2');
+                    safeSetAttr(tabItem, 'aria-label', 'Groups');
+                    safeSetAttr(tabItem, 'tabindex', '0');
+                    tabItem.setAttribute('data-a11y-applied', 'true');
+                }
+            }
+        },
+        {
+            name: "Bookmarks Root",
+            selector: ".ts-bookmarks-root",
+            match: (el) => !el.hasAttribute('data-a11y-applied'),
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'list');
+                safeSetAttr(el, 'aria-label', 'Bookmark list');
+                el.setAttribute('data-a11y-applied', 'true');
+            }
+        },
+        {
+            name: "Bookmark Entry",
+            selector: ".ts-bookmark-entry, .ts-bookmark-folder-box",
+            match: (el) => !el.hasAttribute('data-a11y-applied'),
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'listitem');
+                const textEl = el.querySelector('.tsv-item-text, .tsv-text-truncate');
+                const name = textEl ? textEl.textContent.trim() : 'Bookmark';
+                const isFolder = el.classList.contains('ts-bookmark-folder-box');
+                safeSetAttr(el, 'aria-label', isFolder ? `Folder: ${name}` : name);
+                safeSetAttr(el, 'tabindex', '0');
+                el.setAttribute('data-a11y-applied', 'true');
+            }
+        },
+        {
+            name: "Contact List",
+            selector: ".ts-contact-list",
+            match: (el) => !el.hasAttribute('data-a11y-applied'),
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'list');
+                safeSetAttr(el, 'aria-label', 'Contact list');
+                el.setAttribute('data-a11y-applied', 'true');
+            }
+        },
+        {
+            name: "Contact Entry",
+            selector: ".contact-list-entry",
+            match: (el) => !el.hasAttribute('data-a11y-applied'),
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'listitem');
+                const nameEl = el.querySelector('.ts-room-list-name, .tsv-item-text');
+                const name = nameEl ? nameEl.textContent.trim() : 'Contact';
+
+                // Check online status
+                const statusEl = el.querySelector('.contact-status, [class*="contact-status"]');
+                let status = 'offline';
+                if (statusEl) {
+                    if (statusEl.className.includes('online')) status = 'online';
+                    else if (statusEl.className.includes('away')) status = 'away';
+                    else if (statusEl.className.includes('busy')) status = 'busy';
+                }
+
+                safeSetAttr(el, 'aria-label', `${name}, ${status}`);
+                safeSetAttr(el, 'tabindex', '0');
+                el.setAttribute('data-a11y-applied', 'true');
+            }
+        },
+        {
+            name: "Sidebar Footer (User Profile)",
+            selector: ".ts-sidebar-bottom-drop-area",
+            match: (el) => !el.hasAttribute('data-a11y-applied'),
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'region');
+                safeSetAttr(el, 'aria-label', 'User profile and status');
                 el.setAttribute('data-a11y-applied', 'true');
             }
         },
@@ -214,14 +383,41 @@
                 const nickEl = el.querySelector('.ts-client-nick');
                 const nickname = nickEl ? nickEl.textContent.trim() : "User";
 
-                // Determine voice status from icons
-                let status = "";
-                if (el.querySelector('[name*="talking"]') || el.querySelector('.tsv-icon-client-detailed-talking:not([style*="display: none"])')) {
-                    status = "talking";
-                } else if (el.querySelector('[name*="muted"]') || el.querySelector('[name*="microphone-muted"]')) {
-                    status = "muted";
-                } else if (el.querySelector('[name*="away"]')) {
-                    status = "away";
+                // Determine voice status from icons - check in priority order
+                let statusParts = [];
+
+                // Check for mute indicators first (these are explicit mute states)
+                const outputMuteIndicator = el.querySelector('.mute-indicator.output-muted');
+                const inputMuteIndicator = el.querySelector('.mute-indicator.input-muted');
+                const muteIndicator = el.querySelector('.mute-indicator');
+
+                // Check for icon-based status
+                const voicelessIcon = el.querySelector('[name="client-detailed-voiceless"]');
+                const talkingIcon = el.querySelector('[name="client-detailed-talking"]');
+                const awayIcon = el.querySelector('[name*="away"]');
+                const hardwareMutedIcon = el.querySelector('[name*="hardware-muted"], [name*="microphone-muted"]');
+                const speakerMutedIcon = el.querySelector('[name*="speaker-slash"], [name*="headset-muted"]');
+
+                // Also check for CSS classes that indicate status
+                const nickClass = nickEl ? nickEl.className : '';
+                const isTalking = nickClass.includes('talking') ||
+                                  (talkingIcon && getComputedStyle(talkingIcon).display !== 'none');
+
+                // Build status in priority order
+                if (outputMuteIndicator || speakerMutedIcon) {
+                    statusParts.push('speakers muted');
+                }
+                if (inputMuteIndicator || hardwareMutedIcon) {
+                    statusParts.push('microphone muted');
+                }
+                if (voicelessIcon && !statusParts.some(s => s.includes('muted'))) {
+                    statusParts.push('no voice');
+                }
+                if (awayIcon) {
+                    statusParts.push('away');
+                }
+                if (isTalking && !statusParts.some(s => s.includes('muted'))) {
+                    statusParts.push('talking');
                 }
 
                 // Is this the current user?
@@ -230,10 +426,29 @@
                 // Build label
                 let label = nickname;
                 if (isSelf) label += " (you)";
-                if (status) label += `, ${status}`;
+                if (statusParts.length > 0) label += `, ${statusParts.join(', ')}`;
 
                 safeSetAttr(el, 'aria-label', label);
                 safeSetAttr(el, 'tabindex', '0');
+
+                // Ensure keyboard activation
+                if (!el.hasAttribute('data-a11y-keyboard')) {
+                    el.setAttribute('data-a11y-keyboard', 'true');
+                    el.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.error(`[A11y] Activating client: ${nickname}`);
+                            // Trigger context menu or double-click
+                            const dblClick = new MouseEvent('dblclick', {
+                                bubbles: true,
+                                cancelable: true,
+                                view: window
+                            });
+                            el.dispatchEvent(dblClick);
+                        }
+                    });
+                }
             }
         },
 
@@ -241,11 +456,56 @@
         // [SECTION D] : INTERACTIVE BUTTONS (only these get labels)
         // =====================================================
         {
+            name: "Tool Buttons (Create Channel, Start Stream, etc.)",
+            selector: ".tsv-tool-button",
+            match: (el) => !el.hasAttribute('data-a11y-btn'),
+            apply: (el) => {
+                el.setAttribute('data-a11y-btn', 'true');
+                safeSetAttr(el, 'role', 'button');
+
+                // Get the title text
+                const titleEl = el.querySelector('.tsv-tool-button-title');
+                const title = titleEl ? titleEl.textContent.trim() : '';
+
+                // Get icon name as fallback
+                const icon = el.querySelector('svg[name]');
+                const iconName = icon ? icon.getAttribute('name') : '';
+
+                // Build label
+                let label = title;
+                if (!label && iconName) {
+                    label = cleanLabel(iconName);
+                }
+
+                if (label) {
+                    safeSetAttr(el, 'aria-label', label);
+                }
+
+                // Ensure focusable
+                safeSetAttr(el, 'tabindex', '0');
+
+                // Add keyboard activation
+                if (!el.hasAttribute('data-a11y-keyboard')) {
+                    el.setAttribute('data-a11y-keyboard', 'true');
+                    el.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.error(`[A11y] Activating tool button: ${label}`);
+                            el.click();
+                        }
+                    });
+                }
+            }
+        },
+        {
             name: "Action Buttons",
             selector: ".tsv-action, .tsv-bar-item, button, [role='button']",
             match: (el) => {
                 // Skip if already processed or is not actually interactive
                 if (el.hasAttribute('data-a11y-btn')) return false;
+                // Skip tool buttons (handled separately)
+                if (el.classList.contains('tsv-tool-button')) return false;
                 // Must be clickable
                 return el.onclick || el.closest('button') ||
                        el.classList.contains('tsv-action') ||
@@ -254,36 +514,52 @@
             apply: (el) => {
                 el.setAttribute('data-a11y-btn', 'true');
 
-                // Only add label if missing
-                if (!el.getAttribute('aria-label') && !el.textContent.trim()) {
-                    // Try to get label from child icon
-                    const icon = el.querySelector('svg[name]');
-                    if (icon) {
-                        const iconName = icon.getAttribute('name');
-                        const labelMap = {
-                            'search': 'Search',
-                            'notifications': 'Notifications',
-                            'settings': 'Settings',
-                            'microphone': 'Toggle microphone',
-                            'microphone-muted': 'Microphone muted, click to unmute',
-                            'headset': 'Toggle speakers',
-                            'headset-muted': 'Speakers muted, click to unmute',
-                            'close': 'Close',
-                            'item-close': 'Close',
-                            'plus': 'Add',
-                            'minus': 'Remove',
-                            'edit': 'Edit',
-                            'delete': 'Delete',
-                            'contacts': 'Contacts',
-                            'chat-contact-add': 'Add contact',
-                            'bookmark': 'Bookmarks',
-                            'server': 'Servers'
-                        };
+                // Check if it has visible text content
+                const visibleText = el.textContent.trim();
 
-                        if (labelMap[iconName]) {
-                            safeSetAttr(el, 'aria-label', labelMap[iconName]);
-                        } else if (iconName && iconName.length > 2) {
-                            safeSetAttr(el, 'aria-label', cleanLabel(iconName));
+                // Only add label if missing
+                if (!el.getAttribute('aria-label')) {
+                    if (visibleText && visibleText.length > 0 && visibleText.length < 50) {
+                        // Use visible text as label
+                        safeSetAttr(el, 'aria-label', visibleText);
+                    } else {
+                        // Try to get label from child icon
+                        const icon = el.querySelector('svg[name]');
+                        if (icon) {
+                            const iconName = icon.getAttribute('name');
+                            const labelMap = {
+                                'search': 'Search',
+                                'search-hexagon': 'Search',
+                                'notifications': 'Notifications',
+                                'settings': 'Settings',
+                                'microphone': 'Toggle microphone',
+                                'microphone-muted': 'Microphone muted, click to unmute',
+                                'headset': 'Toggle speakers',
+                                'headset-muted': 'Speakers muted, click to unmute',
+                                'close': 'Close',
+                                'item-close': 'Close',
+                                'plus': 'Add',
+                                'add': 'Add',
+                                'minus': 'Remove',
+                                'edit': 'Edit',
+                                'delete': 'Delete',
+                                'contacts': 'Contacts',
+                                'chat-contact-add': 'Add contact',
+                                'bookmark': 'Bookmarks',
+                                'bookmarks': 'Bookmarks',
+                                'server': 'Servers',
+                                'video-screen': 'Start Stream',
+                                'folder-action': 'Create Folder',
+                                'away': 'Set Away Status',
+                                'connection-status': 'Connection Status',
+                                'groups': 'Groups'
+                            };
+
+                            if (labelMap[iconName]) {
+                                safeSetAttr(el, 'aria-label', labelMap[iconName]);
+                            } else if (iconName && iconName.length > 2) {
+                                safeSetAttr(el, 'aria-label', cleanLabel(iconName));
+                            }
                         }
                     }
                 }
@@ -292,6 +568,82 @@
                 if (!el.hasAttribute('tabindex') && el.tagName !== 'BUTTON') {
                     safeSetAttr(el, 'tabindex', '0');
                 }
+
+                // Add keyboard activation for non-button elements
+                if (el.tagName !== 'BUTTON' && !el.hasAttribute('data-a11y-keyboard')) {
+                    el.setAttribute('data-a11y-keyboard', 'true');
+                    el.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            el.click();
+                        }
+                    });
+                }
+            }
+        },
+        {
+            name: "Sidebar Panel Accessories",
+            selector: ".ts-sidebar-tab-sub-panel-accessory",
+            match: (el) => !el.hasAttribute('data-a11y-btn'),
+            apply: (el) => {
+                el.setAttribute('data-a11y-btn', 'true');
+                safeSetAttr(el, 'role', 'button');
+
+                // Get icon name
+                const icon = el.querySelector('svg[name]');
+                const iconName = icon ? icon.getAttribute('name') : '';
+
+                const labelMap = {
+                    'search-hexagon': 'Search',
+                    'search': 'Search',
+                    'folder-action': 'Create Folder',
+                    'add': 'Add',
+                    'plus': 'Add'
+                };
+
+                const label = labelMap[iconName] || cleanLabel(iconName);
+                if (label) {
+                    safeSetAttr(el, 'aria-label', label);
+                }
+
+                safeSetAttr(el, 'tabindex', '0');
+
+                // Add keyboard activation
+                if (!el.hasAttribute('data-a11y-keyboard')) {
+                    el.setAttribute('data-a11y-keyboard', 'true');
+                    el.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            el.click();
+                        }
+                    });
+                }
+            }
+        },
+        {
+            name: "Activity Group List (Servers)",
+            selector: ".tsv-activity-group-list",
+            match: (el) => !el.hasAttribute('data-a11y-applied'),
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'list');
+                safeSetAttr(el, 'aria-label', 'Connected servers');
+                el.setAttribute('data-a11y-applied', 'true');
+            }
+        },
+        {
+            name: "Server Tab Item",
+            selector: ".tsv-item-group .tsv-item",
+            match: (el) => !el.hasAttribute('data-a11y-applied'),
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'listitem');
+                const nameEl = el.querySelector('.tsv-item-text');
+                const name = nameEl ? nameEl.textContent.trim() : 'Server';
+                const isActive = el.classList.contains('tsv-active');
+                safeSetAttr(el, 'aria-label', isActive ? `${name}, selected` : name);
+                safeSetAttr(el, 'tabindex', '0');
+                el.setAttribute('data-a11y-applied', 'true');
             }
         },
 
