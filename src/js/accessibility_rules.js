@@ -618,14 +618,21 @@
             name: "Contact List Container",
             selector: ".ts-contact-list",
             match: () => true,
-            apply: (el) => safeSetAttr(el, 'role', 'list')
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'menu')
+                let off_contacts_men = el.querySelector('.tsv-virtual-list')
+                if (off_contacts_men) {
+                    safeSetAttr(off_contacts_men, 'role', 'menuitem')
+                    safeSetAttr(off_contacts_men, 'aria-label', 'offline-contacts')
+                }
+            } 
         },
         {
             name: "Virtual List Items (Generic)",
             selector: ".tsv-virtual-list-item, .ts-room-list-item",
             match: () => true,
             apply: (el) => {
-                safeSetAttr(el, 'role', 'listitem');
+                safeSetAttr(el, 'role', 'menuitem');
                 safeSetAttr(el, 'tabindex', '0');
                 const textEl = el.querySelector(".tsv-text-truncate");
                 if (textEl) safeSetAttr(el, 'aria-label', textEl.textContent.trim());
@@ -651,13 +658,8 @@
 
                 const nickEl = el.querySelector('.ts-client-nick');
                 const nickname = nickEl ? nickEl.textContent.trim() : "Client";
-
-                let status = "Silent";
-                if (el.querySelector('svg[name="client-detailed-talking"]')) status = "Talking";
-                else if (el.querySelector('svg[name="client-detailed-voiceless"]')) status = "Microphone Muted";
-                else if (el.querySelector('svg[name="client-detailed-commander-talking"]')) status = "Commander Talking";
-
-                safeSetAttr(el, 'aria-label', `${nickname}, ${status}`);
+                
+                safeSetAttr(el, 'aria-label', `${nickname}`);
             }
         },
         {
@@ -758,9 +760,10 @@
                 safeSetAttr(el, 'role', 'button');
                 safeSetAttr(el, 'tabindex', '0');
                 const svg = el.querySelector('svg');
-                const label = (svg && svg.getAttribute('name') || 'Toggle Section');
+                const label_svg = (svg && svg.getAttribute('name') || 'Toggle Section');
+                const text_label = el.querySelector('.label')
+                const label = label_svg + " " + text_label
                 safeSetAttr(el, 'aria-label', cleanLabel(label));
-
                 safeSetAttr(el, 'aria-expanded', el.classList.contains('collapsed') ? 'false' : 'true');
             }
         },
