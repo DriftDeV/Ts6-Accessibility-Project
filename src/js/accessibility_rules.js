@@ -616,7 +616,6 @@
                 safeSetAttr(el, 'role', 'listitem');
                 const iconStack = el.querySelector('.tsv-item-icon-stack');
                 if (iconStack) safeSetAttr(iconStack, 'aria-hidden', 'true');
-
                 const textDiv = el.querySelector('.tsv-item-text .tsv-text-truncate');
                 const label = textDiv ? textDiv.textContent : 'Bookmark';
                 safeSetAttr(el, 'aria-label', label);
@@ -934,7 +933,7 @@
                             safeSetAttr(menuHeading, 'aria-label', cleanLabel(label));
                         }
                         let menuItems = menu.querySelectorAll('.tsv-item');
-                        menuItems.forEach((item, index) => {
+                        menuItems.forEach(item => {
                             let itemContainer = item.querySelector('.tsv-item-container');
                             if (itemContainer) {
                                 safeSetAttr(itemContainer, 'role', 'menuitem');
@@ -1158,6 +1157,7 @@
             match: () => true,
             apply: (el) => safeRemoveAttr(el, 'tabindex')
         },
+        /*
         {
             name: "Generic Button Fallback",
             selector: ".tsv-action, .tsv-button",
@@ -1171,6 +1171,6 @@
                     safeSetAttr(el, 'aria-label', cleanLabel(label));
                 }
             }
-        }
+        }*/
     ];
 })();
