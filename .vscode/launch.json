@@ -13,14 +13,6 @@
                 "group": "",
                 "order": 1
             }
-        },
-        {
-            "name": "Attach Debugger (Standard)",
-            "type": "pwa-chrome",
-            "request": "attach",
-            "port": 9222,
-            "url": "tsui://default/index.html#/",
-            "webRoot": "${workspaceFolder}/src/js"
         }
     ]
 }

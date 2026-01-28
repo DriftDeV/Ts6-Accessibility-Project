@@ -546,7 +546,50 @@
                 safeSetAttr(el, 'tabindex', '0');
             }
         },
-
+        {
+            name: "Teamspeak Server Error Screen",
+            selector: ".overlay-info-wrapper.tsv-header-safe-area",
+            match: () => true,
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'region');
+                safeSetAttr(el, 'aria-label', 'Server Region');
+                safeSetAttr(el, 'tabindex', '0');
+                err_container = el.querySelector('.overlay-info');
+                if (err_container) {
+                    safeSetAttr(err_container, 'role', 'region');
+                    safeSetAttr(err_container, 'aria-label', 'Server Error');
+                    safeSetAttr(err_container, 'tabindex', '0');
+                }
+                err_title = err_container.querySelector('.overlay-info-title');
+                if (err_title) {
+                    safeSetAttr(err_title, 'role', 'heading');
+                    safeSetAttr(err_title, 'aria-level', '2');
+                    safeSetAttr(err_title, 'tabindex', '0');
+                }
+                err_msgs = err_container.querySelectorAll('.overlay-info-subtitle');
+                if (err_msgs) {
+                    err_msgs.forEach((err_msg) => {
+                        safeSetAttr(err_msg, 'role', 'region');
+                        label = err_msg.textContent.trim();
+                        safeSetAttr(err_msg, 'aria-label', label);
+                        safeSetAttr(err_msg, 'tabindex', '0');
+                        info_msg = err_msg.querySelector('.overlay-info-subtitle');
+                        if (info_msg) {
+                            safeSetAttr(info_msg, 'role', 'region');
+                            label = info_msg.textContent.trim();
+                            safeSetAttr(info_msg, 'aria-label', label);
+                            safeSetAttr(info_msg, 'tabindex', '0');
+                        }
+                    });
+                    buttn = err_container.querySelector('.tsv-button');
+                    if (buttn) {
+                        safeSetAttr(buttn, 'role', 'button');
+                        safeSetAttr(buttn, 'aria-label', 'Retry');
+                        safeSetAttr(buttn, 'tabindex', '0');
+                    }
+                }
+            }
+        },
         // -- [SECTION C] : Navigation & Tabs ---
         // [DESCRIPTION] Manages tab lists, navigation groups and selectable items.
         {
@@ -564,8 +607,8 @@
             selector: ".tsv-settings-categories .tsv-item",
             match: () => true,
             apply: (el) => {
-                safeSetAttr(el, 'role', 'tab');
-                safeSetAttr(el, 'tabindex', '0');
+                safeSetAttr(el, 'role', 'menuitem');
+                safeSetAttr(el, 'tabindex', '0');   
                 safeSetAttr(el, 'aria-selected', el.classList.contains('tsv-selected') ? 'true' : 'false');
 
                 const textEl = el.querySelector('.tsv-item-text');
@@ -714,6 +757,59 @@
                 }
             }
         },
+        
+        // ====================================================
+        //        BETTER SETTINGS ACCESSIBILITY SECTION
+        // ====================================================
+
+        {
+            name: "Settings View Structure",
+            selector: ".tsv-settings",
+            match: () => true,
+            apply: (el) => {
+                // Defines the main container for settings
+                safeSetAttr(el, 'role', 'group');
+                safeSetAttr(el, 'aria-label', 'Settings Interface');
+
+                // LEFT SECTION: Categories/Menu
+                const leftSection = el.querySelector('.tsv-settings-categories');
+                if (leftSection) {
+                    safeSetAttr(leftSection, 'role', 'navigation');
+                    safeSetAttr(leftSection, 'aria-label', 'Settings Categories Navigation');
+                    
+                    // Process categories within the left section
+                    const categories = leftSection.querySelectorAll('.tsv-settings-category');
+                    categories.forEach((category) => {
+                        const header = category.querySelector('.tsv-sidebar-tab-header');
+                        let categoryName = "Settings Group";
+                        
+                        if (header) {
+                            categoryName = header.textContent.trim();
+                            safeSetAttr(header, 'role', 'heading');
+                            safeSetAttr(header, 'aria-level', '2');
+                        }
+
+                        const menu = category.querySelector('.tsv-activity-group-list');
+                        if (menu) {
+                            safeSetAttr(menu, 'role', 'menu');
+                            safeSetAttr(menu, 'aria-label', categoryName);
+                        }
+                    });
+                }
+
+                // RIGHT SECTION: Content
+                const rightSection = el.querySelector('.tsv-settings-subcategory');
+                if (rightSection) {
+                    safeSetAttr(rightSection, 'role', 'region');
+                    // Try to find a dynamic label from the first header
+                    const firstHeader = rightSection.querySelector('.ts-widget-section-header .title');
+                    const label = firstHeader ? firstHeader.textContent.trim() : 'Settings Content';
+                    safeSetAttr(rightSection, 'aria-label', label);
+                    safeSetAttr(rightSection, 'tabindex', '-1'); // Allow programmatic focus
+                }
+            }
+        },
+
 
         // -- [SECTION E] : Inputs, Buttons & Controls ---
         // [DESCRIPTION] Covers interactive elements like search inputs, buttons and toggles.
