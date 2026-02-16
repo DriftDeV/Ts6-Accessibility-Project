@@ -1,8 +1,3 @@
-// accessibility_rules.js
-/**
- * Definitions of accessibility rules for TeamSpeak Client.
- * Injected before: improved_accessibility.js
- */
 
 (function () {
     // -- Utilities ---
@@ -35,7 +30,6 @@
                 const icon = el.querySelector('.ts-first-launch-splash-icons');
                 if (icon) {
                     safeSetAttr(icon, 'role', 'img');
-                    safeSetAttr(icon, 'tabindex', '0');
                     safeSetAttr(icon, 'aria-label', 'TeamSpeak Logo');
                 }
 
@@ -44,7 +38,7 @@
                 if (button) {
                     safeSetAttr(button, 'role', 'button');
                     safeSetAttr(button, 'tabindex', '0');
-                    
+
                     // Try to get label from content, otherwise use fallback
                     const buttonText = button.querySelector('.tsv-button-content');
                     const label = buttonText ? buttonText.textContent.trim() : 'Get Started';
@@ -63,7 +57,6 @@
                 if (scrollContainer) {
                     safeSetAttr(scrollContainer, 'role', 'region');
                     safeSetAttr(scrollContainer, 'aria-label', 'Terms and Conditions Text');
-                    safeSetAttr(scrollContainer, 'tabindex', '0');
                 }
 
                 // 2. Enhance the Buttons (Accept/Reject)
@@ -73,7 +66,7 @@
                     safeSetAttr(btn, 'role', 'button');
                     safeSetAttr(btn, 'tabindex', '0');
                     safeSetAttr(btn, 'aria-label', text);
-                    
+
                     if (btn.classList.contains('disabled')) {
                         safeSetAttr(btn, 'aria-disabled', 'true');
                     } else {
@@ -90,7 +83,7 @@
                         scrollBtn.style.marginBottom = '10px';
                         scrollBtn.style.cursor = 'pointer';
                         scrollBtn.innerHTML = '<div class="tsv-button-content tsv-flex tsv-flex-snd-center">Scroll to Bottom</div>';
-                        
+
                         safeSetAttr(scrollBtn, 'role', 'button');
                         safeSetAttr(scrollBtn, 'tabindex', '0');
                         safeSetAttr(scrollBtn, 'aria-label', 'Scroll to end of agreement to enable Accept button');
@@ -121,16 +114,6 @@
             apply: (el) => {
                 safeSetAttr(el, 'role', 'region');
                 safeSetAttr(el, 'aria-label', 'Sign In');
-                safeSetAttr(el, 'tabindex', '0');
-                /*
-                let login_input_box = el.querySelector('.ts-first-launch-login-myts-input');
-                if (login_input_box) {
-                    let text_fields = login_input_box.querySelectorAll('.ts-text-input-box');
-                    text_fields.forEach((field) => {
-                        safeSetAttr(field, 'role', 'textbox');
-                        safeSetAttr(field, 'tabindex', '0');
-                    });
-                } */
                 let buttonset = el.querySelector('.ts-first-launch-login-myts-buttonset');
                 if (buttonset) {
                     let buttons = buttonset.querySelectorAll('.tsv-button');
@@ -153,7 +136,6 @@
             apply: (el) => {
                 safeSetAttr(el, 'role', 'region');
                 safeSetAttr(el, 'aria-label', 'Create Account');
-                safeSetAttr(el, 'tabindex', '0');
 
                 // Special handling for "Waiting for Email" state
                 const pendingSection = el.querySelector('.ts-first-launch-create-myts-pending');
@@ -162,7 +144,6 @@
                     if (statusHeading) {
                         safeSetAttr(statusHeading, 'role', 'heading');
                         safeSetAttr(statusHeading, 'aria-level', '2');
-                        safeSetAttr(statusHeading, 'tabindex', '-1');
                     }
                 }
 
@@ -171,7 +152,6 @@
                 if (heading) {
                     safeSetAttr(heading, 'role', 'heading');
                     safeSetAttr(heading, 'aria-level', '1');
-                    safeSetAttr(heading, 'tabindex', '0');
                     // Ensure the step info is part of the label
                     const label = heading.innerText.replace(/\n/g, ' ').trim();
                     safeSetAttr(heading, 'aria-label', label);
@@ -185,7 +165,7 @@
                     const content = createBtn.querySelector('.tsv-button-content');
                     const text = content ? content.textContent.trim() : 'Create Account';
                     safeSetAttr(createBtn, 'aria-label', text);
-                    
+
                     if (createBtn.classList.contains('disabled')) {
                         safeSetAttr(createBtn, 'aria-disabled', 'true');
                     } else {
@@ -214,7 +194,6 @@
                 if (heading) {
                     safeSetAttr(heading, 'role', 'heading');
                     safeSetAttr(heading, 'aria-level', '1');
-                    safeSetAttr(heading, 'tabindex', '0');
                 }
 
                 // 2. Success Icon
@@ -247,7 +226,6 @@
                 if (heading) {
                     safeSetAttr(heading, 'role', 'heading');
                     safeSetAttr(heading, 'aria-level', '1');
-                    safeSetAttr(heading, 'tabindex', '0');
                 }
 
                 // 2. Recovery Key & Copy Button
@@ -256,15 +234,15 @@
                     // Make key readable
                     const keyTextEl = keyContainer.querySelector('p');
                     const key = keyTextEl ? keyTextEl.textContent.trim() : "";
-                    
+
                     safeSetAttr(keyContainer, 'role', 'group');
                     safeSetAttr(keyContainer, 'aria-label', 'Recovery Key');
-                    
+
                     if (keyTextEl) {
-                        safeSetAttr(keyTextEl, 'tabindex', '0');
+                        safeSetAttr(keyTextEl, 'role', 'text');
                         safeSetAttr(keyTextEl, 'aria-label', 'Recovery Key: ' + key);
                         // Ensure it's visible to screen readers even if blurred visually
-                        keyTextEl.style.filter = 'none'; 
+                        keyTextEl.style.filter = 'none';
                         keyTextEl.style.opacity = '1';
                     }
 
@@ -275,7 +253,7 @@
                         copyBtn.style.marginTop = '10px';
                         copyBtn.style.cursor = 'pointer';
                         copyBtn.innerHTML = '<div class="tsv-button-content tsv-flex tsv-flex-snd-center">Copy Key to Clipboard</div>';
-                        
+
                         safeSetAttr(copyBtn, 'role', 'button');
                         safeSetAttr(copyBtn, 'tabindex', '0');
                         safeSetAttr(copyBtn, 'aria-label', 'Copy recovery key to clipboard');
@@ -284,16 +262,16 @@
                             if (key) {
                                 navigator.clipboard.writeText(key).then(() => {
                                     const content = copyBtn.querySelector('.tsv-button-content');
-                                    if(content) content.textContent = "Copied!";
+                                    if (content) content.textContent = "Copied!";
                                     setTimeout(() => {
-                                         if(content) content.textContent = "Copy Key to Clipboard";
+                                        if (content) content.textContent = "Copy Key to Clipboard";
                                     }, 2000);
                                 });
                             }
                         };
-                        
+
                         copyBtn.onkeydown = (e) => {
-                             if (e.key === 'Enter' || e.key === ' ') {
+                            if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
                                 copyBtn.click();
                             }
@@ -307,8 +285,7 @@
                 // 3. Explanation
                 const explain = el.querySelector('.ts-first-launch-backup-key-explain');
                 if (explain) {
-                     safeSetAttr(explain, 'tabindex', '0');
-                     safeSetAttr(explain, 'role', 'article');
+                    safeSetAttr(explain, 'role', 'article');
                 }
 
                 // 4. Checkbox
@@ -321,14 +298,14 @@
                     safeSetAttr(checkboxContainer, 'role', 'checkbox');
                     safeSetAttr(checkboxContainer, 'tabindex', '0');
                     safeSetAttr(checkboxContainer, 'aria-label', labelText);
-                    
+
                     // Sync aria-checked state
                     const updateState = () => {
-                         const isChecked = input && input.checked;
-                         safeSetAttr(checkboxContainer, 'aria-checked', isChecked ? 'true' : 'false');
+                        const isChecked = input && input.checked;
+                        safeSetAttr(checkboxContainer, 'aria-checked', isChecked ? 'true' : 'false');
                     };
                     updateState();
-                    
+
                     checkboxContainer.onclick = (e) => {
                         // If click didn't come from input, toggle input
                         if (e.target !== input) {
@@ -336,7 +313,7 @@
                         }
                         updateState();
                     };
-                    
+
                     checkboxContainer.onkeydown = (e) => {
                         if (e.key === ' ' || e.key === 'Enter') {
                             e.preventDefault();
@@ -345,7 +322,7 @@
                         }
                     };
                     // Listen for native changes too
-                    if(input) input.addEventListener('change', updateState);
+                    if (input) input.addEventListener('change', updateState);
                 }
 
                 // 5. Continue Button
@@ -354,15 +331,15 @@
                     safeSetAttr(continueBtn, 'role', 'button');
                     safeSetAttr(continueBtn, 'tabindex', '0');
                     safeSetAttr(continueBtn, 'aria-label', 'Continue');
-                     if (continueBtn.classList.contains('disabled')) {
+                    if (continueBtn.classList.contains('disabled')) {
                         safeSetAttr(continueBtn, 'aria-disabled', 'true');
                     } else {
                         safeRemoveAttr(continueBtn, 'aria-disabled');
                     }
                 }
-                
+
                 // 6. Back Button
-                 const backBtn = el.querySelector('.ts-first-launch-back');
+                const backBtn = el.querySelector('.ts-first-launch-back');
                 if (backBtn) {
                     safeSetAttr(backBtn, 'role', 'button');
                     safeSetAttr(backBtn, 'tabindex', '0');
@@ -379,13 +356,11 @@
             apply: (el) => {
                 safeSetAttr(el, 'role', 'region');
                 safeSetAttr(el, 'aria-label', 'Pick a Theme');
-                safeSetAttr(el, 'tabindex', '0');
 
                 const heading = el.querySelector('.ts-first-launch-title');
                 if (heading) {
                     safeSetAttr(heading, 'role', 'heading');
                     safeSetAttr(heading, 'aria-level', '1');
-                    safeSetAttr(heading, 'tabindex', '0');
                 }
 
                 const list = el.querySelector('.ts-first-launch-pick-theme-preview-items');
@@ -398,7 +373,7 @@
                 items.forEach(item => {
                     safeSetAttr(item, 'role', 'radio');
                     safeSetAttr(item, 'tabindex', '0');
-                    
+
                     const titleSpan = item.querySelector('.ts-first-launch-pick-theme-preview-item-title span:first-child');
                     const label = titleSpan ? titleSpan.textContent.trim() : 'Theme option';
                     safeSetAttr(item, 'aria-label', label);
@@ -415,7 +390,7 @@
                     safeSetAttr(btn, 'tabindex', '0');
                     safeSetAttr(btn, 'aria-label', 'Continue');
                 }
-                
+
                 // Back Button
                 const backBtn = el.querySelector('.ts-first-launch-back');
                 if (backBtn) {
@@ -451,8 +426,8 @@
                     safeSetAttr(finishBtn, 'tabindex', '0');
                     safeSetAttr(finishBtn, 'aria-label', 'Finish Setup');
                 }
-                
-                 // Success Icon
+
+                // Success Icon
                 const icon = el.querySelector('svg[name="check"]');
                 if (icon) {
                     safeSetAttr(icon, 'role', 'img');
@@ -608,7 +583,7 @@
             match: () => true,
             apply: (el) => {
                 safeSetAttr(el, 'role', 'menuitem');
-                safeSetAttr(el, 'tabindex', '0');   
+                safeSetAttr(el, 'tabindex', '0');
                 safeSetAttr(el, 'aria-selected', el.classList.contains('tsv-selected') ? 'true' : 'false');
 
                 const textEl = el.querySelector('.tsv-item-text');
@@ -654,15 +629,16 @@
                 safeSetAttr(el, 'role', 'menu')
                 let entries = el.querySelectorAll('.tsv-item.ts-bookmark-entry')
                 if (entries) { // Bookmark Entries
-                    entries.forEach(entry =>{
+                    entries.forEach(entry => {
                         safeSetAttr(entry, 'role', 'menuitem');
                         const iconStack = entry.querySelector('.tsv-item-icon-stack');
                         if (iconStack) safeSetAttr(iconStack, 'aria-hidden', 'true');
                         const textDiv = entry.querySelector('.tsv-item-text .tsv-text-truncate');
                         const label = textDiv ? textDiv.textContent : 'Bookmark';
-                        safeSetAttr(entry, 'aria-label', label);})
+                        safeSetAttr(entry, 'aria-label', label);
+                    })
                 }
-                let folders = el.querySelectorAll('.tsv-item.ts-bookmark-folder-box') 
+                let folders = el.querySelectorAll('.tsv-item.ts-bookmark-folder-box')
                 if (folders) {
                     folders.forEach(folder => {
                         safeSetAttr(folder, 'role', 'menuitem');
@@ -686,7 +662,7 @@
                     safeSetAttr(off_contacts_men, 'role', 'menuitem')
                     safeSetAttr(off_contacts_men, 'aria-label', 'offline-contacts')
                 }
-            } 
+            }
         },
         {
             name: "Virtual List Items (Generic)",
@@ -738,7 +714,7 @@
                 if (el.classList.contains('has-password')) extra += ", Password Protected";
                 if (el.classList.contains('is-full')) extra += ", Full";
 
-                safeSetAttr(el, 'aria-label', `${name}${extra}`);
+                safeSetAttr(el, 'aria-label', `${name}${extra} Clicca due volte per entrare nel canale! Double Press Enter or spacebar to join the channel!`);
             }
         },
         {
@@ -757,7 +733,7 @@
                 }
             }
         },
-        
+
         // ====================================================
         //        BETTER SETTINGS ACCESSIBILITY SECTION
         // ====================================================
@@ -776,13 +752,13 @@
                 if (leftSection) {
                     safeSetAttr(leftSection, 'role', 'navigation');
                     safeSetAttr(leftSection, 'aria-label', 'Settings Categories Navigation');
-                    
+
                     // Process categories within the left section
                     const categories = leftSection.querySelectorAll('.tsv-settings-category');
                     categories.forEach((category) => {
                         const header = category.querySelector('.tsv-sidebar-tab-header');
                         let categoryName = "Settings Group";
-                        
+
                         if (header) {
                             categoryName = header.textContent.trim();
                             safeSetAttr(header, 'role', 'heading');
@@ -1151,7 +1127,7 @@
                 safeSetAttr(el, 'aria-label', 'Setup Stream Settings');
                 let basic_settings = el.querySelector('.setup-stream__settings-section');
                 if (basic_settings) {
-                    
+
                     safeSetAttr(basic_settings, 'role', 'region');
                     safeSetAttr(basic_settings, 'aria-label', 'Stream Basic Settings Section');
 
@@ -1283,6 +1259,101 @@
                     safeSetAttr(el, 'aria-label', cleanLabel(label));
                 }
             }
-        }
+        },
+
+// -- [SECTION J]: Global "Modal Mode" Management ---
+// [DESCRIPTION] Detects if any Onboarding/Splash modal is present.
+// If so, it hides EVERYTHING ELSE (siblings of the modal and siblings of its ancestors)
+// from screen readers, ensuring the modal is the only thing "visible".
+{
+    name: "Onboarding Modal Manager",
+        selector: 'body',
+            match: () => true,
+                apply: (root) => {
+                    // 1. List of known onboarding overlay/modal containers
+                    const modalSelectors = [
+                        '.ts-first-launch-splash',
+                        '.ts-first-launch-terms-conditions-container',
+                        '.ts-first-launch-login-myts-container',
+                        '.ts-first-launch-create-myts-container',
+                        '.ts-first-launch-create-myts-pending',
+                        '.ts-first-launch-create-myts-final',
+                        '.ts-first-launch-backup-key-container',
+                        '.ts-first-launch-pick-theme-container',
+                        '.ts-first-launch-finish'
+                    ];
+
+                    // 2. Determine Active Modal
+                    let activeModal = null;
+                    for (const sel of modalSelectors) {
+                        // Check visibility: offsetParent is null if display:none
+                        const el = document.querySelector(sel);
+                        if (el && el.offsetParent !== null) {
+                            activeModal = el;
+                            break;
+                        }
+                    }
+
+                    // 3. Helper: Hide node
+                    const hideNode = (node) => {
+                        if (node.nodeType !== 1) return; // Elements only
+                        if (node.tagName === 'SCRIPT' || node.tagName === 'STYLE' || node.tagName === 'LINK') return;
+
+                        // Don't double-hide
+                        if (node.getAttribute('aria-hidden') === 'true' && !node.hasAttribute('data-ts-a11y-hidden')) return;
+
+                        safeSetAttr(node, 'aria-hidden', 'true');
+                        safeSetAttr(node, 'inert', 'true');
+                        safeSetAttr(node, 'data-ts-a11y-hidden', 'true'); // Mark as hidden 
+                    };
+
+                    // 4. Helper: Show node (if we hid it)
+                    const showNode = (node) => {
+                        if (node.getAttribute('data-ts-a11y-hidden') === 'true') {
+                            safeRemoveAttr(node, 'aria-hidden');
+                            safeRemoveAttr(node, 'inert');
+                            safeRemoveAttr(node, 'data-ts-a11y-hidden');
+                        }
+                    };
+
+                    if (activeModal) {
+                        // --- HIDE MODE ---
+                        // Traverse up from modal to body
+                        let curr = activeModal;
+                        while (curr && curr !== document.body) {
+                            const parent = curr.parentElement;
+                            if (!parent) break;
+
+                            // Hide all siblings of curr
+                            for (const child of parent.children) {
+                                if (child !== curr) {
+                                    hideNode(child);
+                                }
+                            }
+
+                            // Ensure ancestors are visible
+                            showNode(curr);
+                            if (curr.hasAttribute('aria-hidden')) {
+                                safeRemoveAttr(curr, 'aria-hidden');
+                                safeRemoveAttr(curr, 'inert');
+                            }
+
+                            curr = parent;
+                        }
+
+                        // Ensure modal has dialog role
+                        if (!activeModal.hasAttribute('role')) {
+                            safeSetAttr(activeModal, 'role', 'dialog');
+                            safeSetAttr(activeModal, 'aria-modal', 'true');
+                        }
+
+                    } else {
+                        // --- RESTORE MODE ---
+                        // Find ALL elements we hid and restore them
+                        const hiddenNodes = document.querySelectorAll('[data-ts-a11y-hidden="true"]');
+                        hiddenNodes.forEach(node => showNode(node));
+                    }
+                }
+}
     ];
-})();
+}) ();
