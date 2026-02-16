@@ -1,5 +1,11 @@
 # Teamspeak Accessibility Mod
 A teamspeak mod to make Teamspeak 6 Accessible for screen reader users
+
+## Priority GOALS
+  - [ ] Improved and complete settings accessibility
+  - [ ] Cleanup for better navigation
+  - [ ] Screen reader hints
+
 ## Usage
 Usage of this mod is straight forward for the most users, if you need help you can open an issue ticket
 ### MacOS
