@@ -772,17 +772,6 @@
                         }
                     });
                 }
-
-                // RIGHT SECTION: Content
-                const rightSection = el.querySelector('.tsv-settings-subcategory');
-                if (rightSection) {
-                    safeSetAttr(rightSection, 'role', 'region');
-                    // Try to find a dynamic label from the first header
-                    const firstHeader = rightSection.querySelector('.ts-widget-section-header .title');
-                    const label = firstHeader ? firstHeader.textContent.trim() : 'Settings Content';
-                    safeSetAttr(rightSection, 'aria-label', label);
-                    safeSetAttr(rightSection, 'tabindex', '-1'); // Allow programmatic focus
-                }
             }
         },
 
