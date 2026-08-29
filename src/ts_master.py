@@ -126,7 +126,7 @@ def get_websocket_debugger_url():
     
     return None
 
-def inject_logic(ws_url, script_content):
+def inject_logic(ws_url, script_content, detach=False):
     """
     Connects to the WebSocket and injects the script.
     """
@@ -169,6 +169,12 @@ def inject_logic(ws_url, script_content):
     result = ws.recv()
     
     print("[+] Script injected successfully!")
+    
+    if detach:
+        print("[*] Detaching debugger to allow other tools (VS Code) to connect...")
+        ws.close()
+        return
+
     print("[+] Monitoring... Press Ctrl+C to stop.")
     
     # Keep connection alive to monitor log events or keep injection active
@@ -189,6 +195,11 @@ def inject_logic(ws_url, script_content):
         ws.close()
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="TeamSpeak 6 Accessibility Injector")
+    parser.add_argument("--detach", action="store_true", help="Inject scripts and then detach immediately to allow VS Code to connect.")
+    args = parser.parse_args()
+
     # 1. Launch TeamSpeak
     os_info = get_os_info()
     if not launch_teamspeak(os_info):
@@ -210,7 +221,7 @@ def main():
     # 4. Connect and Inject
     ws_url = get_websocket_debugger_url()
     if ws_url:
-        inject_logic(ws_url, script_content)
+        inject_logic(ws_url, script_content, detach=args.detach)
     else:
         print("[!] Could not connect to TeamSpeak Debugger.")
         print("    Ensure the port 9222 is open and TeamSpeak is running.")

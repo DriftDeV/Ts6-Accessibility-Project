@@ -109,6 +109,29 @@ All'interno di `improved_accessibility.js` sono disponibili funzioni helper per 
 
 ---
 
+## 🐛 Debugging con VS Code
+
+Se vuoi usare il debugger di VS Code (tramite MS Edge Tools) per impostare breakpoint nel codice JavaScript iniettato, devi avviare lo script Python in modalità "detach".
+
+Questo perché il protocollo di debug di Chrome (CDP) supporta solitamente una sola connessione attiva. Se lo script Python rimane connesso per monitorare i log, VS Code non può collegarsi.
+
+### Procedura:
+
+1.  **Avvia TeamSpeak con il flag `--detach`**:
+    ```bash
+    python3 src/ts_master.py --detach
+    ```
+    Lo script avvierà TeamSpeak, inietterà le regole di accessibilità e poi si disconnetterà immediatamente.
+
+2.  **Avvia il Debugger in VS Code**:
+    *   Vai nella tab "Run and Debug" di VS Code.
+    *   Seleziona la configurazione **"Attach to TeamSpeak (CEF)"**.
+    *   Premi Play (F5).
+
+Ora dovresti essere in grado di mettere breakpoint in `src/js/improved_accessibility.js` o `src/js/accessibility_rules.js` e debuggare il codice in tempo reale.
+
+---
+
 ## 🔍 Strumenti di Debugging
 
 Il progetto include script Python nella cartella `src/` per aiutarti a capire cosa succede "sotto il cofano".

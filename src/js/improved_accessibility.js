@@ -359,6 +359,31 @@
         // 0. Setup Global Listeners
         document.addEventListener('keydown', handleKeyboardActivation);
 
+        // 0b. Magnetic Focus for Settings Menu
+        document.addEventListener('click', (e) => {
+             // Check if clicked element is a settings menu item
+            const settingsItem = e.target.closest('.tsv-settings-categories .tsv-item');
+            if (settingsItem) {
+                // Wait for the new section to render
+                setTimeout(() => {
+                    // Target the Right Section Content
+                    const rightSection = document.querySelector('.tsv-settings-subcategory');
+                    if (rightSection) {
+                        // Priority 1: The first section header title
+                        let target = rightSection.querySelector('.ts-widget-section-header .title');
+                        // Priority 2: The first section header container
+                        if (!target) target = rightSection.querySelector('.ts-widget-section-header');
+                        // Priority 3: The section itself
+                        if (!target) target = rightSection;
+
+                        if (target) {
+                            focusElement(target, "Settings Content Category");
+                        }
+                    }
+                }, 200);
+            }
+        });
+
         // 1. Hook Router
         let app = findVueRoot();
         if (app) {
