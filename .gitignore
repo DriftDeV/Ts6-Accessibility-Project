@@ -16,4 +16,5 @@ debug.log
 
 # OS
 .DS_Store
+.vscode/
 .claude
