@@ -17,11 +17,62 @@
         if (el.hasAttribute(attr)) el.removeAttribute(attr);
     }
 
+    // Settings screens pair most controls with a "<label>" describing them, but the
+    // wrapper markup varies a lot between screens: sometimes the <label> is a direct
+    // child of the row, sometimes it's a sibling of an intermediate generic wrapper
+    // div (e.g. a plain ".tsv-flex" used only for layout) that sits between the row
+    // and the control. Matching by wrapper CLASS NAME (e.g. `.closest('.tsv-flex-row')`)
+    // is fragile: `.closest()` stops at the nearest ancestor whose class happens to
+    // match, even if that ancestor doesn't actually contain the <label> - silently
+    // mislabeling the control from an unrelated row further out, or missing the label
+    // entirely. Instead, this walks straight up looking for the <label> itself.
+    //
+    // `controlSelector` (e.g. ".multiselect[role='combobox']") guards each level: only
+    // trust a <label> found at a level that uniquely owns this ONE control. Without
+    // that check, climbing high enough always finds *some* label - just not the right
+    // one, once the ancestor is big enough to contain multiple unrelated rows.
+    function findSettingsRowLabel(el, controlSelector) {
+        const ownsOnlyThisControl = (ancestor) =>
+            !controlSelector || ancestor.querySelectorAll(controlSelector).length === 1;
+
+        // Tier 1: an explicit <label> found while still uniquely owning the control.
+        let ancestor = el.parentElement;
+        for (let i = 0; i < 6 && ancestor; i++) {
+            if (ownsOnlyThisControl(ancestor)) {
+                const label = ancestor.querySelector('label');
+                if (label) {
+                    const titleSpan = label.querySelector('span');
+                    const text = (titleSpan ? titleSpan.textContent : label.textContent).trim();
+                    if (text) return text;
+                }
+            }
+            ancestor = ancestor.parentElement;
+        }
+
+        // Tier 2: no <label> anywhere while unique (e.g. the Notifications event
+        // list, which has no <label> at all) - use the nearest such ancestor's first
+        // short text node as the name instead.
+        ancestor = el.parentElement;
+        for (let i = 0; i < 6 && ancestor; i++) {
+            if (ownsOnlyThisControl(ancestor)) {
+                const leaf = Array.from(ancestor.querySelectorAll('*')).find(n =>
+                    n.children.length === 0 && n.textContent.trim().length > 0 && n.textContent.trim().length < 60
+                );
+                if (leaf) return leaf.textContent.trim();
+            }
+            ancestor = ancestor.parentElement;
+        }
+
+        return '';
+    }
+
     // -- Rules Configuration ---
 
     window.tsA11yRules = [
 
-        // TS SPLASH ICON AND BUTTON Initial Screen
+        // -- [SECTION A] : First-Launch Onboarding Flow ---
+        // [DESCRIPTION] Covers the one-time setup wizard (splash, license, account
+        // creation/sign-in, recovery key, theme picker) shown only on first launch.
         {
             name: "Splash Screen",
             selector: ".ts-first-launch-splash", // Target the container
@@ -436,7 +487,7 @@
             }
         },
 
-        // -- [SECTION A] : Landmarks & Page Structure ---
+        // -- [SECTION B] : Landmarks & Page Structure ---
         // [DESCRIPTION] Defines major regions (Main, Banner, Sidebar) for quick navigation.
         {
             name: "Activity Page (Main View)",
@@ -488,7 +539,7 @@
             }
         },
 
-        // -- [SECTION B] : Headings & Typography ---
+        // -- [SECTION C] : Headings & Typography ---
         // [DESCRIPTION] Establishes heading hierarchy (H1-H6) for content structure.
         {
             name: "Main Header Logo (H1)",
@@ -526,46 +577,43 @@
             selector: ".overlay-info-wrapper.tsv-header-safe-area",
             match: () => true,
             apply: (el) => {
-                safeSetAttr(el, 'role', 'region');
-                safeSetAttr(el, 'aria-label', 'Server Region');
+                // Announced automatically: this replaces the whole view when a connection fails.
+                safeSetAttr(el, 'role', 'alert');
+                safeSetAttr(el, 'aria-label', 'Server Connection Error');
                 safeSetAttr(el, 'tabindex', '0');
-                err_container = el.querySelector('.overlay-info');
-                if (err_container) {
-                    safeSetAttr(err_container, 'role', 'region');
-                    safeSetAttr(err_container, 'aria-label', 'Server Error');
-                    safeSetAttr(err_container, 'tabindex', '0');
+
+                const errContainer = el.querySelector('.overlay-info');
+                if (!errContainer) return;
+
+                safeSetAttr(errContainer, 'role', 'region');
+                safeSetAttr(errContainer, 'aria-label', 'Connection Error Details');
+                safeSetAttr(errContainer, 'tabindex', '0');
+
+                const errTitle = errContainer.querySelector('.overlay-info-title');
+                if (errTitle) {
+                    safeSetAttr(errTitle, 'role', 'heading');
+                    safeSetAttr(errTitle, 'aria-level', '2');
+                    safeSetAttr(errTitle, 'tabindex', '0');
                 }
-                err_title = err_container.querySelector('.overlay-info-title');
-                if (err_title) {
-                    safeSetAttr(err_title, 'role', 'heading');
-                    safeSetAttr(err_title, 'aria-level', '2');
-                    safeSetAttr(err_title, 'tabindex', '0');
-                }
-                err_msgs = err_container.querySelectorAll('.overlay-info-subtitle');
-                if (err_msgs) {
-                    err_msgs.forEach((err_msg) => {
-                        safeSetAttr(err_msg, 'role', 'region');
-                        label = err_msg.textContent.trim();
-                        safeSetAttr(err_msg, 'aria-label', label);
-                        safeSetAttr(err_msg, 'tabindex', '0');
-                        info_msg = err_msg.querySelector('.overlay-info-subtitle');
-                        if (info_msg) {
-                            safeSetAttr(info_msg, 'role', 'region');
-                            label = info_msg.textContent.trim();
-                            safeSetAttr(info_msg, 'aria-label', label);
-                            safeSetAttr(info_msg, 'tabindex', '0');
-                        }
-                    });
-                    buttn = err_container.querySelector('.tsv-button');
-                    if (buttn) {
-                        safeSetAttr(buttn, 'role', 'button');
-                        safeSetAttr(buttn, 'aria-label', 'Retry');
-                        safeSetAttr(buttn, 'tabindex', '0');
-                    }
+
+                const errMsgs = errContainer.querySelectorAll('.overlay-info-subtitle');
+                errMsgs.forEach((errMsg) => {
+                    safeSetAttr(errMsg, 'role', 'text');
+                    safeSetAttr(errMsg, 'aria-label', errMsg.textContent.replace(/\s+/g, ' ').trim());
+                    safeSetAttr(errMsg, 'tabindex', '0');
+                });
+
+                const retryBtn = errContainer.querySelector('.tsv-button');
+                if (retryBtn) {
+                    const content = retryBtn.querySelector('.tsv-button-content');
+                    const label = content ? content.textContent.trim() : 'Retry';
+                    safeSetAttr(retryBtn, 'role', 'button');
+                    safeSetAttr(retryBtn, 'aria-label', label);
+                    safeSetAttr(retryBtn, 'tabindex', '0');
                 }
             }
         },
-        // -- [SECTION C] : Navigation & Tabs ---
+        // -- [SECTION D] : Navigation & Tabs ---
         // [DESCRIPTION] Manages tab lists, navigation groups and selectable items.
         {
             name: "Sidebar Tab Items",
@@ -619,7 +667,7 @@
             }
         },
 
-        // -- [SECTION D] : Lists, Trees & Items ---
+        // -- [SECTION E] : Lists, Trees & Items ---
         // [DESCRIPTION] Handles structured data like the server tree, bookmarks and lists.
         {
             name: "Bookmark List Container",
@@ -665,9 +713,19 @@
             }
         },
         {
+            // Virtual-scrolling libraries render extra zero-height buffer rows outside
+            // the visible range (e.g. "data-idx=-1", "height: 0px") to make scroll math
+            // work. These carry no content, but without this check they'd still get
+            // labeled as a real, focusable, empty menu item - a silent, pointless tab
+            // stop for keyboard/screen-reader users. The same selector also matches
+            // fake preview rows (mock usernames/avatars with no real aria-label source)
+            // rendered *inside* the Appearance page's Compact/Detailed style-preview
+            // cards purely for visual mockup purposes; those cards already get their
+            // own single accessible name from the "Settings Picker Card Item" rule
+            // (role="radio"), so the decorative rows inside are skipped here too.
             name: "Virtual List Items (Generic)",
             selector: ".tsv-virtual-list-item, .ts-room-list-item",
-            match: () => true,
+            match: (el) => el.getBoundingClientRect().height > 0 && !el.closest('[role="radio"]'),
             apply: (el) => {
                 safeSetAttr(el, 'role', 'menuitem');
                 safeSetAttr(el, 'tabindex', '0');
@@ -714,7 +772,7 @@
                 if (el.classList.contains('has-password')) extra += ", Password Protected";
                 if (el.classList.contains('is-full')) extra += ", Full";
 
-                safeSetAttr(el, 'aria-label', `${name}${extra} Clicca due volte per entrare nel canale! Double Press Enter or spacebar to join the channel!`);
+                safeSetAttr(el, 'aria-label', `${name}${extra}. Press Enter twice quickly to join the channel.`);
             }
         },
         {
@@ -734,10 +792,9 @@
             }
         },
 
-        // ====================================================
-        //        BETTER SETTINGS ACCESSIBILITY SECTION
-        // ====================================================
-
+        // -- [SECTION F] : Settings Panel Structure ---
+        // [DESCRIPTION] Landmarks and menu semantics for the Settings screen's
+        // category sidebar (Account, Appearance, Key Bindings, etc.).
         {
             name: "Settings View Structure",
             selector: ".tsv-settings",
@@ -774,10 +831,156 @@
                 }
             }
         },
+        {
+            // The vue-multiselect dropdown used throughout Settings (Language, Icon View
+            // Mode, Audio/Video device pickers, ...) already ships with role="combobox"
+            // and a "listbox"/"option" popup, but it has no accessible name of its own -
+            // it lives in a ".tsv-flex-row" next to a <label> that isn't wired to it.
+            // NOTE: match is unconditional (not just "no aria-label yet") because
+            // vue-multiselect sometimes sets its OWN aria-label to the current
+            // selected value (seen e.g. on a disabled device/codec picker) - that
+            // looks "already labeled" but doesn't say what the control is for. The
+            // row-derived label below is always preferred when one is found; if none
+            // is found, any pre-existing aria-label is left untouched.
+            name: "Settings Row Dropdown (Multiselect)",
+            selector: ".multiselect[role='combobox']",
+            match: () => true,
+            apply: (el) => {
+                const label = findSettingsRowLabel(el, ".multiselect[role='combobox']");
+                if (label) safeSetAttr(el, 'aria-label', label);
+                safeSetAttr(el, 'aria-haspopup', 'listbox');
+            }
+        },
+        {
+            // Segmented on/off controls reused all across Settings (Notifications,
+            // Chats, Whispers, Connections, ...) in two flavors: icon-only pairs (an
+            // "X" and a checkmark, no text) and text-labeled ones ("Hidden" / "Dynamic"
+            // / "Always Visible"). Neither flavor had ANY role or tabindex before this
+            // rule - completely invisible to keyboard/screen-reader navigation. Icon-
+            // only buttons additionally need a name built from their row (otherwise
+            // every row's pair falls through to the generic fallback and all get the
+            // exact same label, e.g. "Item Close" repeated on every single row); text-
+            // labeled buttons already have a clear name from their own content.
+            // This intentionally excludes Screen Share's setup panel, which has its
+            // own dedicated rule below with different semantics (aria-pressed toggle
+            // buttons rather than a mutually-exclusive radio group).
+            name: "Settings Row Segmented Toggle",
+            selector: ".tsv-segmented-control",
+            match: (el) => !el.closest('.setup-stream__settings'),
+            apply: (el) => {
+                const rowName = findSettingsRowLabel(el, '.tsv-segmented-control');
+                safeSetAttr(el, 'role', 'radiogroup');
+                if (rowName) safeSetAttr(el, 'aria-label', rowName);
 
+                el.querySelectorAll('.tsv-segmented-button').forEach((btn) => {
+                    safeSetAttr(btn, 'role', 'radio');
+                    safeSetAttr(btn, 'tabindex', '0');
+                    safeSetAttr(btn, 'aria-checked', btn.classList.contains('active') ? 'true' : 'false');
 
-        // -- [SECTION E] : Inputs, Buttons & Controls ---
+                    if (!btn.textContent.trim()) {
+                        const svg = btn.querySelector('svg');
+                        const iconName = svg ? cleanLabel(svg.getAttribute('name') || '') : '';
+                        safeSetAttr(btn, 'aria-label', rowName ? `${rowName}: ${iconName}` : iconName);
+                    }
+                });
+            }
+        },
+        {
+            // Card-style single-choice pickers reused across Settings > Appearance:
+            // Theme (Dark/Light), Display Size (Small/Medium/Large), and the List/Chat
+            // Style previews (Compact/Detailed). None of them expose any role today.
+            name: "Settings Picker Card Groups",
+            selector: ".tsv-settings-theme-picker, .ts-collection-container",
+            match: (el) => !!el.querySelector('.tsv-settings-theme-picker-item, .ts-collection-item.ts-magnify-container'),
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'radiogroup');
+                // Use the GROUP's own selector (not the individual item selector) for
+                // the uniqueness check here: a group always contains several matching
+                // items by design, so checking "exactly one item" would never pass -
+                // what needs to be unique is that the ancestor contains only this one
+                // picker group, not a sibling one (e.g. Display Size vs. Chat Style).
+                const groupLabel = findSettingsRowLabel(el, '.tsv-settings-theme-picker, .ts-collection-container');
+                if (groupLabel) safeSetAttr(el, 'aria-label', groupLabel);
+            }
+        },
+        {
+            name: "Settings Picker Card Item",
+            selector: ".tsv-settings-theme-picker-item, .ts-collection-item.ts-magnify-container",
+            match: () => true,
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'radio');
+                safeSetAttr(el, 'tabindex', '0');
+                const isSelected = el.classList.contains('active') || el.classList.contains('selected');
+                safeSetAttr(el, 'aria-checked', isSelected ? 'true' : 'false');
+
+                // These cards contain large decorative preview markup (fake avatars,
+                // sample chat bubbles, ...). Derive the label from the first short text
+                // node instead, so screen readers hear "Small" / "Compact" rather than
+                // the whole preview being read out.
+                const candidates = Array.from(el.querySelectorAll('*')).filter(n =>
+                    n.children.length === 0 && n.textContent.trim().length > 0 && n.textContent.trim().length < 20
+                );
+                const label = candidates.length ? candidates[0].textContent.trim() : el.textContent.trim().slice(0, 30);
+                safeSetAttr(el, 'aria-label', label);
+            }
+        },
+
+        // -- [SECTION G] : Inputs, Buttons & Controls ---
         // [DESCRIPTION] Covers interactive elements like search inputs, buttons and toggles.
+        {
+            // Custom drag-only sliders (Output Volume, Mic level, Security Level, ...).
+            // Most render as a ".master-fader#<id>" wrapper with a native
+            // "<label for=...>" pointing at that id; others (e.g. "Security Level" in
+            // Identities, or sliders sitting in a plain ".ts-card-setting-container"
+            // row like the device pickers) have no such id/label pairing at all, so
+            // those fall back to the same row-label lookup used for dropdowns.
+            // A hidden "<input type=number readonly>" holds the real value; the
+            // draggable knob itself has no ARIA at all today.
+            // NOTE: this only exposes the current value for discovery - it deliberately
+            // does NOT get a tabindex, because dragging is still the only way to change
+            // it. Making it a tab stop without also wiring up arrow-key support would
+            // create a keyboard trap (focusable, but nothing happens on Enter/arrows).
+            name: "Level Sliders (Volume, etc.)",
+            selector: ".ts-slider",
+            match: () => true,
+            apply: (el) => {
+                const wrapper = el.parentElement;
+                let label = wrapper && wrapper.id ? document.querySelector('label[for="' + wrapper.id + '"]') : null;
+                let labelText = label ? label.textContent.trim() : findSettingsRowLabel(el, '.ts-slider');
+                const hiddenInput = el.querySelector('input.ts-slider-hidden');
+
+                safeSetAttr(el, 'role', 'slider');
+                safeSetAttr(el, 'aria-valuemin', '0');
+                safeSetAttr(el, 'aria-valuemax', '100');
+                if (hiddenInput) safeSetAttr(el, 'aria-valuenow', hiddenInput.value);
+                if (labelText) safeSetAttr(el, 'aria-label', labelText);
+            }
+        },
+        {
+            // The hotkey chip on Settings > Key Bindings (e.g. "ALT + SHIFT + M") - had
+            // no role or tabindex at all despite being a real button: clicking it
+            // starts a "press a new key combination" capture. NOTE: labeling only,
+            // deliberately not click-tested here - clicking it live puts the row into
+            // that capture state, which requires a genuine OS-level keypress (this
+            // app's hotkeys use a native/global listener, not a DOM keydown handler)
+            // to complete safely, which browser automation cannot reliably provide.
+            name: "Key Binding Hotkey Capture",
+            selector: ".ts-keybinds-hotkeys-key",
+            match: () => true,
+            apply: (el) => {
+                safeSetAttr(el, 'role', 'button');
+                safeSetAttr(el, 'tabindex', '0');
+
+                const entry = el.closest('.ts-keybinds-hotkeys-entry');
+                const nameEl = entry ? entry.querySelector('.ts-keybinds-hotkeys-entry-name') : null;
+                const name = nameEl ? nameEl.textContent.trim() : 'Key Binding';
+
+                const valueSpan = el.querySelector('span');
+                const currentValue = valueSpan ? valueSpan.textContent.trim() : 'Not set';
+
+                safeSetAttr(el, 'aria-label', `${name}: ${currentValue}. Press Enter to record a new key combination.`);
+            }
+        },
         {
             name: "Search Input",
             selector: ".tsv-search-input, input.tsv-search-input, .server-search-input input, .ts-text-input-box input",
@@ -838,12 +1041,23 @@
             apply: (el) => {
                 safeSetAttr(el, 'role', 'button');
                 safeSetAttr(el, 'tabindex', '0');
-                const svg = el.querySelector('svg');
-                const label_svg = (svg && svg.getAttribute('name') || 'Toggle Section');
-                const text_label = el.querySelector('.label')
-                const label = label_svg + " " + text_label
-                safeSetAttr(el, 'aria-label', cleanLabel(label));
-                safeSetAttr(el, 'aria-expanded', el.classList.contains('collapsed') ? 'false' : 'true');
+
+                const isExpanded = !el.classList.contains('collapsed');
+                safeSetAttr(el, 'aria-expanded', isExpanded ? 'true' : 'false');
+
+                // 1. Prefer an explicit inline text label on the expander itself
+                const labelEl = el.querySelector('.label');
+                let name = labelEl ? labelEl.textContent.trim() : '';
+
+                // 2. Otherwise, fall back to the name of the section/channel it belongs to
+                //    (icon-only expanders, e.g. channel tree or sidebar section headers).
+                if (!name) {
+                    const context = el.closest('.ts-server-tree-item-node-content') || el.closest('.tsv-bar');
+                    if (context) name = context.textContent.replace(/\s+/g, ' ').trim();
+                }
+
+                const action = isExpanded ? 'Collapse' : 'Expand';
+                safeSetAttr(el, 'aria-label', name ? `${action} ${name}` : `${action} Section`);
             }
         },
         {
@@ -895,7 +1109,7 @@
             }
         },
 
-        // -- [SECTION F] : Widgets & Complex Components ---
+        // -- [SECTION H] : Widgets & Complex Components ---
         // [DESCRIPTION] Specialized components like dashboards and status indicators.
         {
             name: "Widget Wrapper (Group)",
@@ -930,7 +1144,7 @@
             }
         },
 
-        // -- [SECTION G] : Chat Area ---
+        // -- [SECTION I] : Chat Area ---
         // [DESCRIPTION] Accessibility for the messaging and chat interface.
         {
             name: "Chat Message Content",
@@ -973,8 +1187,9 @@
             }
         },
 
-        // -- [SECTION H] : Modals & Overlays ---
-        // [DESCRIPTION] Handles popup dialogs and modal windows.
+        // -- [SECTION J] : Modals & Overlays ---
+        // [DESCRIPTION] Popup dialogs, context menus, the notifications panel,
+        // and the Screen Share setup window and its settings sub-panels.
         {
             name: "Modal Dialog",
             selector: ".tsv-modal-container",
@@ -997,7 +1212,7 @@
             selector: ".ts-context-menu",
             match: () => true,
             apply: (el) => {
-                let status = el.getAttribute('style');
+                const status = el.getAttribute('style') || '';
                 if (status.includes('visibility: hidden')) {
                     safeSetAttr(el, 'aria-hidden', 'true');
                 } else {
@@ -1021,6 +1236,23 @@
                             }
                         })
                     }
+                }
+            }
+        },
+        {
+            name: "Notifications Center Panel",
+            selector: ".ts-notifications-center",
+            match: () => true,
+            apply: (el) => {
+                // This popover is a ".ts-context-menu" variant without a ".tsv-tool-menu"
+                // inside, so the generic context-menu rule above intentionally skips it.
+                safeSetAttr(el, 'role', 'region');
+                safeSetAttr(el, 'aria-label', 'Notifications');
+                safeSetAttr(el, 'tabindex', '0');
+
+                const placeholder = el.querySelector('.ts-notificatoin-center-placeholder');
+                if (placeholder) {
+                    safeSetAttr(placeholder, 'role', 'status');
                 }
             }
         },
@@ -1172,38 +1404,49 @@
         },
         // Advanced Settings Groups Accessibility
         {
+            // NOTE: this runs on every ".tsv-flex-row" in the whole stream settings
+            // panel, including "Preset" up in Basic Settings - it's not exclusive to
+            // the Advanced section despite the name. It used to derive the row label
+            // from `.tsv-flex` (the whole label wrapper), which also contains the "?"
+            // tooltip-trigger span next to the text - producing labels like
+            // "? Preset" instead of "Preset". It also called .querySelectorAll on
+            // ".tsv-segmented-control.tsv-mar-t-small" without checking it was found
+            // first, which throws (and, since each rule's errors are only caught
+            // per-rule, silently skips every remaining row in the same pass) on any
+            // row - like Preset's - whose segmented control doesn't carry that exact
+            // modifier class.
             name: "Advanced Settings Groups Accessibility",
             selector: ".setup-stream__settings",
             match: () => true,
             apply: (el) => {
-                let advanced_settings_items = el.querySelectorAll(".tsv-flex-row");
-                if (advanced_settings_items) {
-                    advanced_settings_items.forEach(item => {
-                        const label = cleanLabel(item.querySelector('.tsv-flex').textContent);
-                        safeSetAttr(item, 'role', 'group');
-                        safeSetAttr(item, 'aria-label', label);
-                        safeSetAttr(item, 'tabindex', '0');
-                        let pickerType_params = item.querySelector('.tsv-flex-grow');
-                        if (pickerType_params) {
-                            let picker_field = pickerType_params.querySelector('.tsv-number-picker-field');
-                            safeSetAttr(picker_field, 'role', 'textfield');
-                        }
-                        // Accessibilità pulsanti Advanced Settings
-                        let btnType_controls_section = item.querySelector('.tsv-flex-1') // Sezione controlli
-                        if (btnType_controls_section) {
-                            btnList = btnType_controls_section.querySelector('.tsv-segmented-control.tsv-mar-t-small');
-                            btnList.querySelectorAll('.tsv-segmented-button').forEach(btn => {
-                                const label = btn.textContent;
-                                safeSetAttr(btn, 'role', 'button');
-                                safeSetAttr(btn, 'aria-label', label)
-                                safeSetAttr(btn, 'tabindex', '0')
-                            })
-                        }
-                    })
-                }
+                const advanced_settings_items = el.querySelectorAll(".tsv-flex-row");
+                advanced_settings_items.forEach(item => {
+                    const labelEl = item.querySelector('.tsv-label-inline') || item.querySelector('.tsv-flex');
+                    if (labelEl) safeSetAttr(item, 'aria-label', cleanLabel(labelEl.textContent));
+                    safeSetAttr(item, 'role', 'group');
+                    safeSetAttr(item, 'tabindex', '0');
+
+                    const pickerType_params = item.querySelector('.tsv-flex-grow');
+                    if (pickerType_params) {
+                        const picker_field = pickerType_params.querySelector('.tsv-number-picker-field');
+                        safeSetAttr(picker_field, 'role', 'textfield');
+                    }
+                    // Accessibilità pulsanti Advanced Settings
+                    const btnType_controls_section = item.querySelector('.tsv-flex-1'); // Sezione controlli
+                    const btnList = btnType_controls_section
+                        ? btnType_controls_section.querySelector('.tsv-segmented-control.tsv-mar-t-small')
+                        : null;
+                    if (btnList) {
+                        btnList.querySelectorAll('.tsv-segmented-button').forEach(btn => {
+                            safeSetAttr(btn, 'role', 'button');
+                            safeSetAttr(btn, 'aria-label', btn.textContent);
+                            safeSetAttr(btn, 'tabindex', '0');
+                        });
+                    }
+                });
             }
         },
-        // -- [SECTION I] : Cleanup & Fallbacks ---
+        // -- [SECTION K] : Cleanup & Fallbacks ---
         // [DESCRIPTION] Final housekeeping for generic elements and removing artifacts.
         {
             name: "Resize Handle (Separator)",
@@ -1236,10 +1479,25 @@
             apply: (el) => safeRemoveAttr(el, 'tabindex')
         },
         {
+            // Last-resort labeling for any icon-bearing action not already covered by
+            // a more specific rule above. Prefers the button's own visible text (e.g.
+            // an identity/profile name next to a decorative icon) over the icon's SVG
+            // name - a bare icon name like "mode-server-compact" describes the glyph,
+            // not what the button does, and is actively misleading when real text sits
+            // right next to it.
             name: "Generic Button Fallback",
             selector: ".tsv-action, .tsv-button",
             match: (el) => !el.hasAttribute('aria-label') && el.querySelector('svg'),
             apply: (el) => {
+                const textEl = el.querySelector('.tsv-text-truncate') || el.querySelector('.tsv-item-text');
+                const visibleText = textEl ? textEl.textContent.replace(/\s+/g, ' ').trim() : '';
+                if (visibleText) {
+                    safeSetAttr(el, 'role', 'button');
+                    safeSetAttr(el, 'tabindex', '0');
+                    safeSetAttr(el, 'aria-label', visibleText);
+                    return;
+                }
+
                 const svg = el.querySelector('svg');
                 if (svg) {
                     const label = svg.getAttribute('name') || 'Action';
@@ -1249,100 +1507,117 @@
                 }
             }
         },
-
-// -- [SECTION J]: Global "Modal Mode" Management ---
-// [DESCRIPTION] Detects if any Onboarding/Splash modal is present.
-// If so, it hides EVERYTHING ELSE (siblings of the modal and siblings of its ancestors)
-// from screen readers, ensuring the modal is the only thing "visible".
-{
-    name: "Onboarding Modal Manager",
-        selector: 'body',
+        {
+            // TeamSpeak marks controls that are temporarily unavailable (e.g. the "More
+            // Options" toolbar button when there is nothing to act on) with this class,
+            // purely visually (dimmed color). Earlier rules in this file still grant
+            // those controls role="button" + tabindex="0" since they don't know about
+            // this state, so a keyboard user could tab to and "press" a button that
+            // silently does nothing. This rule runs last and corrects that: it removes
+            // the control from the tab order and marks it aria-disabled, matching how a
+            // native <button disabled> behaves.
+            name: "Respect Visually-Disabled Controls",
+            selector: ".tsv-is-visually-disabled",
             match: () => true,
-                apply: (root) => {
-                    // 1. List of known onboarding overlay/modal containers
-                    const modalSelectors = [
-                        '.ts-first-launch-splash',
-                        '.ts-first-launch-terms-conditions-container',
-                        '.ts-first-launch-login-myts-container',
-                        '.ts-first-launch-create-myts-container',
-                        '.ts-first-launch-create-myts-pending',
-                        '.ts-first-launch-create-myts-final',
-                        '.ts-first-launch-backup-key-container',
-                        '.ts-first-launch-pick-theme-container',
-                        '.ts-first-launch-finish'
-                    ];
+            apply: (el) => {
+                safeSetAttr(el, 'aria-disabled', 'true');
+                safeSetAttr(el, 'tabindex', '-1');
+            }
+        },
 
-                    // 2. Determine Active Modal
-                    let activeModal = null;
-                    for (const sel of modalSelectors) {
-                        // Check visibility: offsetParent is null if display:none
-                        const el = document.querySelector(sel);
-                        if (el && el.offsetParent !== null) {
-                            activeModal = el;
-                            break;
-                        }
-                    }
+        // -- [SECTION L] : Global "Modal Mode" Management ---
+        // [DESCRIPTION] Detects if any Onboarding/Splash modal is present.
+        // If so, it hides EVERYTHING ELSE (siblings of the modal and siblings of its ancestors)
+        // from screen readers, ensuring the modal is the only thing "visible".
+        {
+            name: "Onboarding Modal Manager",
+            selector: 'body',
+            match: () => true,
+            apply: (root) => {
+                // 1. List of known onboarding overlay/modal containers
+                const modalSelectors = [
+                    '.ts-first-launch-splash',
+                    '.ts-first-launch-terms-conditions-container',
+                    '.ts-first-launch-login-myts-container',
+                    '.ts-first-launch-create-myts-container',
+                    '.ts-first-launch-create-myts-pending',
+                    '.ts-first-launch-create-myts-final',
+                    '.ts-first-launch-backup-key-container',
+                    '.ts-first-launch-pick-theme-container',
+                    '.ts-first-launch-finish'
+                ];
 
-                    // 3. Helper: Hide node
-                    const hideNode = (node) => {
-                        if (node.nodeType !== 1) return; // Elements only
-                        if (node.tagName === 'SCRIPT' || node.tagName === 'STYLE' || node.tagName === 'LINK') return;
-
-                        // Don't double-hide
-                        if (node.getAttribute('aria-hidden') === 'true' && !node.hasAttribute('data-ts-a11y-hidden')) return;
-
-                        safeSetAttr(node, 'aria-hidden', 'true');
-                        safeSetAttr(node, 'inert', 'true');
-                        safeSetAttr(node, 'data-ts-a11y-hidden', 'true'); // Mark as hidden 
-                    };
-
-                    // 4. Helper: Show node (if we hid it)
-                    const showNode = (node) => {
-                        if (node.getAttribute('data-ts-a11y-hidden') === 'true') {
-                            safeRemoveAttr(node, 'aria-hidden');
-                            safeRemoveAttr(node, 'inert');
-                            safeRemoveAttr(node, 'data-ts-a11y-hidden');
-                        }
-                    };
-
-                    if (activeModal) {
-                        // --- HIDE MODE ---
-                        // Traverse up from modal to body
-                        let curr = activeModal;
-                        while (curr && curr !== document.body) {
-                            const parent = curr.parentElement;
-                            if (!parent) break;
-
-                            // Hide all siblings of curr
-                            for (const child of parent.children) {
-                                if (child !== curr) {
-                                    hideNode(child);
-                                }
-                            }
-
-                            // Ensure ancestors are visible
-                            showNode(curr);
-                            if (curr.hasAttribute('aria-hidden')) {
-                                safeRemoveAttr(curr, 'aria-hidden');
-                                safeRemoveAttr(curr, 'inert');
-                            }
-
-                            curr = parent;
-                        }
-
-                        // Ensure modal has dialog role
-                        if (!activeModal.hasAttribute('role')) {
-                            safeSetAttr(activeModal, 'role', 'dialog');
-                            safeSetAttr(activeModal, 'aria-modal', 'true');
-                        }
-
-                    } else {
-                        // --- RESTORE MODE ---
-                        // Find ALL elements we hid and restore them
-                        const hiddenNodes = document.querySelectorAll('[data-ts-a11y-hidden="true"]');
-                        hiddenNodes.forEach(node => showNode(node));
+                // 2. Determine Active Modal
+                let activeModal = null;
+                for (const sel of modalSelectors) {
+                    // Check visibility: offsetParent is null if display:none
+                    const el = document.querySelector(sel);
+                    if (el && el.offsetParent !== null) {
+                        activeModal = el;
+                        break;
                     }
                 }
-}
+
+                // 3. Helper: Hide node
+                const hideNode = (node) => {
+                    if (node.nodeType !== 1) return; // Elements only
+                    if (node.tagName === 'SCRIPT' || node.tagName === 'STYLE' || node.tagName === 'LINK') return;
+
+                    // Don't double-hide
+                    if (node.getAttribute('aria-hidden') === 'true' && !node.hasAttribute('data-ts-a11y-hidden')) return;
+
+                    safeSetAttr(node, 'aria-hidden', 'true');
+                    safeSetAttr(node, 'inert', 'true');
+                    safeSetAttr(node, 'data-ts-a11y-hidden', 'true'); // Mark as hidden
+                };
+
+                // 4. Helper: Show node (if we hid it)
+                const showNode = (node) => {
+                    if (node.getAttribute('data-ts-a11y-hidden') === 'true') {
+                        safeRemoveAttr(node, 'aria-hidden');
+                        safeRemoveAttr(node, 'inert');
+                        safeRemoveAttr(node, 'data-ts-a11y-hidden');
+                    }
+                };
+
+                if (activeModal) {
+                    // --- HIDE MODE ---
+                    // Traverse up from modal to body
+                    let curr = activeModal;
+                    while (curr && curr !== document.body) {
+                        const parent = curr.parentElement;
+                        if (!parent) break;
+
+                        // Hide all siblings of curr
+                        for (const child of parent.children) {
+                            if (child !== curr) {
+                                hideNode(child);
+                            }
+                        }
+
+                        // Ensure ancestors are visible
+                        showNode(curr);
+                        if (curr.hasAttribute('aria-hidden')) {
+                            safeRemoveAttr(curr, 'aria-hidden');
+                            safeRemoveAttr(curr, 'inert');
+                        }
+
+                        curr = parent;
+                    }
+
+                    // Ensure modal has dialog role
+                    if (!activeModal.hasAttribute('role')) {
+                        safeSetAttr(activeModal, 'role', 'dialog');
+                        safeSetAttr(activeModal, 'aria-modal', 'true');
+                    }
+
+                } else {
+                    // --- RESTORE MODE ---
+                    // Find ALL elements we hid and restore them
+                    const hiddenNodes = document.querySelectorAll('[data-ts-a11y-hidden="true"]');
+                    hiddenNodes.forEach(node => showNode(node));
+                }
+            }
+        }
     ];
 }) ();
